@@ -1,0 +1,11 @@
+Data\DPropietario.class
+Data\DTutor.class
+Bussines\BAlumno.class
+Bussines\BPropietario.class
+Bussines\BTutor.class
+Bussines\Bproducto.class
+Data\DProducto.class
+com\mycompany\bussinesdata\BussinesData.class
+Data\DUsuario.class
+Bussines\Bususario.class
+Data\DAlumno.class

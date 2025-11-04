@@ -1,0 +1,10 @@
+communication\MailVerificationThread$2.class
+com\mycompany\connectioncore\ConnectionCore.class
+communication\SendEmailThread.class
+Interfaces\IEmailEventListener.class
+utils\Command.class
+communication\MailVerificationThread.class
+utils\Extractor.class
+com\mycompany\connectioncore\ConnectionCore$1.class
+communication\MailVerificationThread$1.class
+utils\Email.class
