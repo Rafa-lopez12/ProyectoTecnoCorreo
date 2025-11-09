@@ -5,7 +5,10 @@
 package communication;
 
 import Bussines.BAlumno;
+import Bussines.BHorario;
+import Bussines.BInscripcion;
 import Bussines.BTutor;
+import Bussines.BTutorHorario;
 import Interfaces.IEmailEventListener;
 import Interpreter.analex.utils.Token;
 import Interpreter.analex.interfaces.ITokenEventListener;
@@ -32,21 +35,25 @@ import jakarta.mail.search.FlagTerm;
 import jakarta.mail.search.SearchTerm;
 import java.sql.SQLException;
 import java.util.Properties;
+import utils.HtmlTableGenerator;
 
 /**
  *
  * @author Rafa
  */
 public class MailVerificationThread implements Runnable{
-    private final static int PORT_POP =993;
-    private final static String HOST= "imap.gmail.com";
-    private final static String USER= "rafa.123asdlopez@gmail.com";
-    private final static String PASSWORD= "mcewvaahflvqhafw";
+    private final static int PORT_POP =110;
+    private final static String HOST= "mail.tecnoweb.org.bo";
+    private final static String USER= "grupo16sa";
+    private final static String PASSWORD= "grup016grup016*"; //mcewvaahflvqhafw
     
     private IEmailEventListener emailEventListener;
     private Bususario busuario;
     private BTutor btutor;
     private BAlumno balumno;
+    private BHorario bhorario;
+    private BTutorHorario btutorhorario;
+    private BInscripcion binscripcion;
     
     private Socket socket;
     private BufferedReader input;
@@ -68,6 +75,9 @@ public class MailVerificationThread implements Runnable{
         busuario = new Bususario();
         btutor= new BTutor();
         balumno = new BAlumno();
+        bhorario = new BHorario();      
+        btutorhorario = new BTutorHorario();
+        binscripcion = new BInscripcion();
     }
 
     @Override
@@ -77,81 +87,80 @@ public class MailVerificationThread implements Runnable{
             Folder inbox = null;
             try {
                 Properties properties = new Properties();
-                properties.put("mail.store.protocol", "imaps");
-                properties.put("mail.imap.host", HOST);
-                properties.put("mail.imap.port", "993");
-                properties.put("mail.imap.ssl.enable", "true");
-                properties.put("mail.imap.ssl.trust", HOST);
-                properties.put("mail.imap.auth", "true");
-                
-                Session session = Session.getInstance(properties, new Authenticator() {
-                    @Override
-                    protected PasswordAuthentication getPasswordAuthentication() {
-                        return new PasswordAuthentication(USER, PASSWORD);
-                    }
-                });
-                
-                store = session.getStore("imaps");
+                properties.put("mail.store.protocol", "pop3");
+                properties.put("mail.pop3.host", HOST);
+                properties.put("mail.pop3.port", "110");
+                properties.put("mail.pop3.ssl.enable", "false");
+                properties.put("mail.pop3.auth", "true");
+                properties.put("mail.pop3.connectiontimeout", "5000");
+                properties.put("mail.pop3.timeout", "5000");
+
+                Session session = Session.getInstance(properties, null);
+                store = session.getStore("pop3");
                 store.connect(HOST, USER, PASSWORD);
-                
+
                 System.out.println("***************Conexion establecida**********************");
-                
+
                 inbox = store.getFolder("INBOX");
                 inbox.open(Folder.READ_WRITE);
-                
-                // BUSCAR SOLO CORREOS NO LEÍDOS
-                SearchTerm searchTerm = new FlagTerm(new Flags(Flags.Flag.SEEN), false);
-                Message[] messages = inbox.search(searchTerm);
-                
+
+                // POP3: Obtener TODOS los mensajes (no hay búsqueda por flags)
+                Message[] messages = inbox.getMessages();
+
                 List<Email> emails = new ArrayList<>();
                 int count = messages.length;
-                
+
                 if (count > 0) {
+                    System.out.println("Correos encontrados: " + count);
+
                     for (Message msg : messages) {
                         Email email = new Email();
-                        
+
                         if (msg.getFrom() != null && msg.getFrom().length > 0) {
                             email.setFrom(msg.getFrom()[0].toString());
                         }
-                        
+
                         email.setSubject(msg.getSubject());
-                        
+
                         // PROCESAR EL COMANDO DEL CORREO
                         processEmailCommand(email);
-                        
+
                         emails.add(email);
-                        
-                        // Marcar como leído
-                        msg.setFlag(Flags.Flag.SEEN, true);
-                        // Si quieres eliminar, descomenta:
-                        // msg.setFlag(Flags.Flag.DELETED, true);
+
+                        // IMPORTANTE: Marcar para ELIMINAR después de procesar
+                        msg.setFlag(Flags.Flag.DELETED, true);
+                        System.out.println("✓ Correo procesado y marcado para eliminar");
                     }
-                    
-                    System.out.println(emails);
+
+                    System.out.println("Total procesados: " + emails.size());
+
+                    if (emailEventListener != null) {
+                        emailEventListener.onReceiveEmailEvent(emails);
+                    }
+                } else {
+                    System.out.println("No hay correos nuevos...");
                 }
-                
-                inbox.close(true);
+
+                // Cerrar con 'true' para aplicar los cambios (eliminar mensajes)
+                inbox.close(true);  // ← MUY IMPORTANTE: true para confirmar eliminaciones
                 store.close();
-                
+
                 System.out.println("***************Conexion Terminada**********************");
-                
-                if (count > 0 && emailEventListener != null) {
-                    emailEventListener.onReceiveEmailEvent(emails);
-                }
-                
-                Thread.sleep(5000);
-                
+
+                Thread.sleep(10000);  // Aumentado a 10 segundos
+
             } catch (Exception ex) {
+                System.err.println("Error en el ciclo de verificación:");
                 Logger.getLogger(MailVerificationThread.class.getName()).log(Level.SEVERE, null, ex);
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(10000);
                 } catch (InterruptedException ie) {
                     Logger.getLogger(MailVerificationThread.class.getName()).log(Level.SEVERE, null, ie);
                 }
             } finally {
                 try {
                     if (inbox != null && inbox.isOpen()) {
-                        inbox.close(false);
+                        inbox.close(true);  // true para confirmar eliminaciones
                     }
                     if (store != null && store.isConnected()) {
                         store.close();
@@ -174,89 +183,257 @@ public class MailVerificationThread implements Runnable{
         Interpreter interpreter = new Interpreter(comando, sender);
         interpreter.setListener(new ITokenEventListener() {
             
-            @Override
-            public void usuario(TokenEvent event) {
-                try {
-                    System.out.println("=== COMANDO RECIBIDO POR CORREO ===");
+        @Override
+        public void usuario(TokenEvent event) {
+            try {
+                System.out.println("=== COMANDO USUARIO ===");
+                System.out.println(event);
+
+                if (event.getAction() == Token.ADD) {
+                    busuario.guardar(event.getParams());
+                    System.out.println("✓ Usuario agregado exitosamente");
+
+                } else if (event.getAction() == Token.MODIFY) {
+                    busuario.modificar(event.getParams());
+                    System.out.println("✓ Usuario modificado");
+
+                } else if (event.getAction() == Token.DELETE) {
+                    busuario.eliminar(event.getParams());
+                    System.out.println("✓ Usuario eliminado");
+
+                } else if (event.getAction() == Token.GET) {
+                    // LISTAR USUARIOS
+                    ArrayList<String[]> usuarios = busuario.listar();
+                    String htmlTable = HtmlTableGenerator.generateUsuarioTable(usuarios);
+
+                    // Enviar correo con la tabla
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Lista de Usuarios",
+                        htmlTable
+                    );
+                    System.out.println("✓ Lista de usuarios enviada por correo");
+
+                } else {
+                    System.err.println("✗ Acción no válida");
+                }
+            } catch (SQLException e) {
+                System.err.println("✗ Error: " + e.getMessage());
+            }
+        }
+
+        @Override
+        public void alumno(TokenEvent event) {
+            try {
+                System.out.println("=== COMANDO ALUMNO ===");
+                System.out.println(event);
+
+                if (event.getAction() == Token.ADD) {
+                    balumno.guardar(event.getParams());
+                    System.out.println("✓ Alumno agregado exitosamente");
+
+                } else if (event.getAction() == Token.MODIFY) {
+                    balumno.modificar(event.getParams());
+                    System.out.println("✓ Alumno modificado");
+
+                } else if (event.getAction() == Token.DELETE) {
+                    balumno.eliminar(event.getParams());
+                    System.out.println("✓ Alumno eliminado");
+
+                } else if (event.getAction() == Token.GET) {
+                    // LISTAR ALUMNOS
+                    ArrayList<String[]> alumnos = balumno.listar();
+                    String htmlTable = HtmlTableGenerator.generateAlumnoTable(alumnos);
+
+                    // Enviar correo con la tabla
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Lista de Alumnos",
+                        htmlTable
+                    );
+                    System.out.println("✓ Lista de alumnos enviada por correo");
+
+                } else {
+                    System.err.println("✗ Acción no válida");
+                }
+            } catch (SQLException e) {
+                System.err.println("✗ Error: " + e.getMessage());
+            }
+        }
+
+        @Override
+        public void tutor(TokenEvent event) {
+            try {
+                System.out.println("=== COMANDO TUTOR ===");
+                System.out.println(event);
+
+                if (event.getAction() == Token.ADD) {
+                    btutor.guardar(event.getParams());
+                    System.out.println("✓ Tutor agregado exitosamente");
+
+                } else if (event.getAction() == Token.MODIFY) {
+                    btutor.modificar(event.getParams());
+                    System.out.println("✓ Tutor modificado");
+
+                } else if (event.getAction() == Token.DELETE) {
+                    btutor.eliminar(event.getParams());
+                    System.out.println("✓ Tutor eliminado");
+
+                } else if (event.getAction() == Token.GET) {
+                    // LISTAR TUTORES
+                    ArrayList<String[]> tutores = btutor.listar();
+                    String htmlTable = HtmlTableGenerator.generateTutorTable(tutores);
+
+                    // Enviar correo con la tabla
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Lista de Tutores",
+                        htmlTable
+                    );
+                    System.out.println("✓ Lista de tutores enviada por correo");
+
+                } else {
+                    System.err.println("✗ Acción no válida");
+                }
+            } catch (SQLException e) {
+                System.err.println("✗ Error: " + e.getMessage());
+            }
+        }
+        
+        @Override
+        public void horario(TokenEvent event) {
+            try {
+                System.out.println("=== COMANDO HORARIO ===");
+                System.out.println(event);
+
+                if (event.getAction() == Token.ADD) {
+                    bhorario.guardar(event.getParams());
+                    System.out.println("✓ Horario agregado exitosamente");
+
+                } else if (event.getAction() == Token.MODIFY) {
+                    bhorario.modificar(event.getParams());
+                    System.out.println("✓ Horario modificado");
+
+                } else if (event.getAction() == Token.DELETE) {
+                    bhorario.eliminar(event.getParams());
+                    System.out.println("✓ Horario eliminado");
+
+                } else if (event.getAction() == Token.GET) {
+                    // LISTAR HORARIOS
+                    ArrayList<String[]> horarios = bhorario.listar();
+                    String htmlTable = HtmlTableGenerator.generateHorarioTable(horarios);
+
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Lista de Horarios",
+                        htmlTable
+                    );
+                    System.out.println("✓ Lista de horarios enviada por correo");
+
+                } else {
+                    System.err.println("✗ Acción no válida");
+                }
+            } catch (SQLException e) {
+                System.err.println("✗ Error: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        
+        
+        @Override
+        public void inscripcion(TokenEvent event) {
+                    try {
+                            System.out.println("=== COMANDO INSCRIPCION ===");
+                            System.out.println(event);
+
+                            if (event.getAction() == Token.ADD) {
+                                int inscripcionId = binscripcion.guardar(event.getParams());
+                                System.out.println("✓ Inscripción creada exitosamente. ID: " + inscripcionId);
+
+                            } else if (event.getAction() == Token.MODIFY) {
+                                // Modificar inscripción
+                                // Params: id, estado, observaciones
+                                binscripcion.modificar(event.getParams());
+                                System.out.println("✓ Inscripción modificada");
+
+                            } else if (event.getAction() == Token.DELETE) {
+                                // Eliminar inscripción
+                                binscripcion.eliminar(event.getParams());
+                                System.out.println("✓ Inscripción eliminada");
+
+                            } else if (event.getAction() == Token.GET) {
+                                // Listar inscripciones
+                                ArrayList<String[]> inscripciones = binscripcion.listar();
+                                String htmlTable = HtmlTableGenerator.generateInscripcionTable(inscripciones);
+
+                                SendEmailThread.sendEmail(
+                                    event.getSender(),
+                                    "Lista de Inscripciones",
+                                    htmlTable
+                                );
+                                System.out.println("✓ Lista de inscripciones enviada por correo");
+
+                            } else {
+                                System.err.println("✗ Acción no válida");
+                            }
+                        } catch (SQLException e) {
+                            System.err.println("✗ Error: " + e.getMessage());
+                            e.printStackTrace();
+                        }
+        }
+        
+        @Override
+        public void tutor_horario(TokenEvent event) {
+               try {
+                    System.out.println("=== COMANDO TUTOR-HORARIO ===");
                     System.out.println(event);
-                    
+
                     if (event.getAction() == Token.ADD) {
-                        busuario.guardar(event.getParams());
-                        System.out.println("✓ Usuario agregado exitosamente");
-                        // Aquí puedes enviar un correo de confirmación
-                        
-                    } else if (event.getAction() == Token.MODIFY) {
-                        System.out.println("✓ Usuario modificado");
-                        // busuario.modificar(event.getParams());
-                        
+                        // Asignar horario a tutor
+                        btutorhorario.guardar(event.getParams());
+                        System.out.println("✓ Horario asignado al tutor exitosamente");
+
                     } else if (event.getAction() == Token.DELETE) {
-                        System.out.println("✓ Usuario eliminado");
-                        // busuario.eliminar(event.getParams());
-                        
+                        // Desasignar horario de tutor
+                        btutorhorario.eliminar(event.getParams());
+                        System.out.println("✓ Horario desasignado del tutor exitosamente");
+
+                    } else if (event.getAction() == Token.GET) {
+                        // Listar todas las asignaciones
+                        ArrayList<String[]> asignaciones = btutorhorario.listar();
+                        System.out.println(asignaciones);
+                        String htmlTable = HtmlTableGenerator.generateTutorHorarioTable(asignaciones);
+
+                        SendEmailThread.sendEmail(
+                            event.getSender(),
+                            "Asignaciones Tutor-Horario",
+                            htmlTable
+                        );
+                        System.out.println("✓ Lista de asignaciones enviada por correo");
+
                     } else {
-                        System.err.println("✗ Acción no válida para el caso de uso");
+                        System.err.println("✗ Acción no válida");
                     }
-                    
                 } catch (SQLException e) {
-                    System.err.println("✗ Error SQL: " + e.getMessage());
+                    System.err.println("✗ Error: " + e.getMessage());
                     e.printStackTrace();
                 }
-            }
-            
-            @Override
-            public void alumno(TokenEvent event) {
-                try {
-                      if (event.getAction() == Token.ADD) {
-                           balumno.guardar(event.getParams());
-                           System.out.println("OK AL AGREGAR");
-                        }else if (event.getAction() == Token.MODIFY) {
+        }
 
-                        }else if (event.getAction() == Token.DELETE) {
 
-                        }else{
-                            System.out.println("La accion no es validad para el caso de uso");
-                        }
-                } 
-              
-                catch (SQLException e) {
+       @Override
+       public void error(TokenEvent event) {
+       System.err.println("✗ ERROR AL PROCESAR COMANDO:");
+       System.err.println(event);
+       System.err.println("Formato esperado: usuario <accion> <param1, param2, ...>");
+       
+        }
+
+                });
+
                
-                    System.out.println("Mensaje: " +e.getSQLState());
-                }
-            }
-            
-            @Override
-            public void tutor(TokenEvent event) {
-                try {
-                      if (event.getAction() == Token.ADD) {
-                           btutor.guardar(event.getParams());
-                           System.out.println("OK AL AGREGAR");
-                        }else if (event.getAction() == Token.MODIFY) {
-
-                        }else if (event.getAction() == Token.DELETE) {
-
-                        }else{
-                            System.out.println("La accion no es validad para el caso de uso");
-                        }
-                } 
-              
-                catch (SQLException e) {
-               
-                    System.out.println("Mensaje: " +e.getSQLState());
-                }
-            }
-
-            @Override
-            public void error(TokenEvent event) {
-                System.err.println("✗ ERROR AL PROCESAR COMANDO:");
-                System.err.println(event);
-                System.err.println("Formato esperado: usuario <accion> <param1, param2, ...>");
-                // Aquí puedes enviar un correo con el error al remitente
-            }
-        });
-        
-        // Ejecutar el intérprete en el mismo hilo (o crear uno nuevo si prefieres)
-        interpreter.run();
-    }
+                interpreter.run();
+           }
     
     
     private void authUser(String email, String password) throws IOException{

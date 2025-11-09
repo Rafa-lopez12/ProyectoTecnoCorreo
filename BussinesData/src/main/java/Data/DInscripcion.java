@@ -65,7 +65,7 @@ public class DInscripcion {
     
     public List<String[]> listar() throws SQLException{
         List<String[]> inscripciones = new ArrayList<>();
-        String query = "SELECT " +
+        String query = "SELECT i.id, i.fecha_inscripcion, i.observaciones, " +
                       "a.nombre as alumno_nombre, a.apellido as alumno_apellido, " +
                       "t.nombre as tutor_nombre, t.apellido as tutor_apellido " +
                       "FROM inscripcion i " +
@@ -78,12 +78,9 @@ public class DInscripcion {
         while(set.next()){
             inscripciones.add(new String[] {
                 String.valueOf(set.getInt("id")),
-                String.valueOf(set.getInt("alumno_id")),
-                String.valueOf(set.getInt("tutor_id")),
                 set.getString("alumno_nombre") + " " + set.getString("alumno_apellido"),
                 set.getString("tutor_nombre") + " " + set.getString("tutor_apellido"),
                 set.getString("fecha_inscripcion"),
-                set.getString("estado"),
                 set.getString("observaciones")
             });
         }

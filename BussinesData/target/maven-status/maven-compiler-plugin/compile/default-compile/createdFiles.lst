@@ -5,8 +5,10 @@ Bussines\Bproducto.class
 com\mycompany\bussinesdata\BussinesData.class
 Data\DTutorHorario.class
 Bussines\BHorario.class
+Bussines\BInscripcion.class
 Bussines\BAlumno.class
 Bussines\BPropietario.class
+Data\DInscripcion.class
 Data\DProducto.class
 Data\DHorario.class
 Data\DUsuario.class

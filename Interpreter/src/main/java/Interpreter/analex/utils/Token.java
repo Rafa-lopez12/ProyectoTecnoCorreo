@@ -22,6 +22,9 @@ public class Token {
     public static final int USUARIO = 100;
     public static final int ALUMNO = 101;
     public static final int TUTOR = 102;
+    public static final int HORARIO = 103;
+    public static final int TUTOR_HORARIO = 104;
+    public static final int INSCRIPCION = 105;
 //    public static final int CLIENT = 101;
 //    public static final int DPTO = 102;
  //   public static final int SOCIAL = 103;
@@ -57,6 +60,9 @@ public class Token {
     public static final String LEXEME_USUARIO = "usuario";
     public static final String LEXEME_ALUMNO = "alumno";
     public static final String LEXEME_TUTOR = "tutor";
+    public static final String LEXEME_HORARIO = "horario";
+    public static final String LEXEME_TUTORHORARIO = "tutorhorario";
+    public static final String LEXEME_INSCRIPCION = "inscripcion";
     
     
     public static final String LEXEME_ADD = "add";
@@ -155,6 +161,18 @@ public class Token {
             
         case TUTOR:
             return LEXEME_TUTOR;
+        
+        case HORARIO:
+            return LEXEME_HORARIO;
+            
+        case TUTOR_HORARIO:
+            return LEXEME_TUTORHORARIO;
+            
+        case INSCRIPCION:
+            return LEXEME_INSCRIPCION;
+            
+            
+            
             
         case ERROR_COMMAND:
             return LEXEME_ERROR_COMMAND;
@@ -190,6 +208,14 @@ public class Token {
         case LEXEME_TUTOR:
             return TUTOR;
             
+        case LEXEME_HORARIO:
+            return HORARIO;
+           
+         case LEXEME_TUTORHORARIO:
+            return TUTOR_HORARIO;
+            
+         case LEXEME_INSCRIPCION:
+            return INSCRIPCION;  
             
             
         case LEXEME_ADD:

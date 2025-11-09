@@ -52,17 +52,39 @@ public class Interpreter implements Runnable{
     private void filterEvent(TokenCommand token_command){
         TokenEvent token_event = new TokenEvent(this, sender);
         token_event.setAction(token_command.getAction());
-        
+
         int count_params = token_command.countParams();
         for (int i = 0; i < count_params; i++) {
             int pos = token_command.getParams(i);
             token_event.addParams(analex.getParam(pos));
         }
-        
+
         switch (token_command.getName()) {
             case Token.USUARIO:
                 listener.usuario(token_event);
                 break;
+            case Token.ALUMNO:
+                listener.alumno(token_event);
+                break;
+            case Token.TUTOR:
+                listener.tutor(token_event);
+                break;
+                
+            case Token.HORARIO:
+                listener.horario(token_event);
+            break;
+            
+            case Token.TUTOR_HORARIO:   
+                listener.tutor_horario(token_event);
+            break;
+            
+            case Token.INSCRIPCION:   
+                listener.inscripcion(token_event);
+            break;
+                
+            default:
+            System.err.println("Caso de uso no reconocido: " + token_command.getName());
+            break;
         }
     }
     

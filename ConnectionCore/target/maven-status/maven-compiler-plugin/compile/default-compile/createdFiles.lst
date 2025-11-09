@@ -1,9 +1,10 @@
-communication\MailVerificationThread$2.class
 com\mycompany\connectioncore\ConnectionCore.class
 communication\SendEmailThread.class
+communication\SendEmailThread$1.class
 Interfaces\IEmailEventListener.class
 utils\Command.class
 communication\MailVerificationThread.class
+utils\HtmlTableGenerator.class
 utils\Extractor.class
 com\mycompany\connectioncore\ConnectionCore$1.class
 communication\MailVerificationThread$1.class
