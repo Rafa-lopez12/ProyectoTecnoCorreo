@@ -7,6 +7,7 @@ package communication;
 import Bussines.BAlumno;
 import Bussines.BHorario;
 import Bussines.BInscripcion;
+import Bussines.BServicio;
 import Bussines.BTutor;
 import Bussines.BTutorHorario;
 import Interfaces.IEmailEventListener;
@@ -54,6 +55,7 @@ public class MailVerificationThread implements Runnable{
     private BHorario bhorario;
     private BTutorHorario btutorhorario;
     private BInscripcion binscripcion;
+    private BServicio bservicio;
     
     private Socket socket;
     private BufferedReader input;
@@ -372,7 +374,59 @@ public class MailVerificationThread implements Runnable{
                                     htmlTable
                                 );
                                 System.out.println("✓ Lista de inscripciones enviada por correo");
+                            } else if (event.getAction() == Token.LIST_IALUMNO) {
+ 
+                                int alumnoId = Integer.parseInt(event.getParams().get(0));
+                                ArrayList<String[]> inscripciones = binscripcion.listarPorAlumno(alumnoId);
 
+                                // Obtener nombre del alumno
+                                String[] alumno = balumno.ver(alumnoId);
+                                String nombreAlumno = alumno != null ? alumno[1] + " " + alumno[2] : "Desconocido";
+
+                                String htmlTable = HtmlTableGenerator.generateInscripcionesPorAlumnoTable(inscripciones, nombreAlumno);
+
+                                SendEmailThread.sendEmail(
+                                    event.getSender(),
+                                    "Inscripciones de " + nombreAlumno,
+                                    htmlTable
+                                );
+                                System.out.println("✓ Inscripciones del alumno enviadas por correo");
+
+                            } else if (event.getAction() == Token.LIST_ITUTOR) {
+
+                                int tutorId = Integer.parseInt(event.getParams().get(0));
+                                ArrayList<String[]> inscripciones = binscripcion.listarPorTutor(tutorId);
+
+                      
+                                String[] tutor = btutor.ver(tutorId);
+                                String nombreTutor = tutor != null ? tutor[1] + " " + tutor[2] : "Desconocido";
+
+                                String htmlTable = HtmlTableGenerator.generateInscripcionesPorTutorTable(inscripciones, nombreTutor);
+
+                                SendEmailThread.sendEmail(
+                                    event.getSender(),
+                                    "Alumnos de " + nombreTutor,
+                                    htmlTable
+                                );
+                                System.out.println("✓ Inscripciones del tutor enviadas por correo");
+
+                            } else if (event.getAction() == Token.LIST_ISERVICIO) {
+ 
+                                int servicioId = Integer.parseInt(event.getParams().get(0));
+                                ArrayList<String[]> inscripciones = binscripcion.listarPorServicio(servicioId);
+
+                                // Obtener nombre del servicio
+                                String[] servicio = bservicio.ver(servicioId);
+                                String nombreServicio = servicio != null ? servicio[1] : "Desconocido";
+
+                                String htmlTable = HtmlTableGenerator.generateInscripcionesPorServicioTable(inscripciones, nombreServicio);
+
+                                SendEmailThread.sendEmail(
+                                    event.getSender(),
+                                    "Inscripciones - " + nombreServicio,
+                                    htmlTable
+                                );
+                                System.out.println("✓ Inscripciones del servicio enviadas por correo");
                             } else {
                                 System.err.println("✗ Acción no válida");
                             }
@@ -419,6 +473,109 @@ public class MailVerificationThread implements Runnable{
                     e.printStackTrace();
                 }
         }
+        
+            @Override
+            public void servicio(TokenEvent event) {
+                try {
+                    System.out.println("=== COMANDO SERVICIO ===");
+                    System.out.println(event);
+
+                    if (event.getAction() == Token.GET) {
+                        // Listar todos los servicios
+                        ArrayList<String[]> servicios = bservicio.listar();
+                        String htmlTable = HtmlTableGenerator.generateServicioTable(servicios);
+
+                        SendEmailThread.sendEmail(
+                            event.getSender(),
+                            "Lista de Servicios",
+                            htmlTable
+                        );
+                        System.out.println("✓ Lista de servicios enviada por correo");
+
+                    } else if (event.getAction() == Token.ACTIVATE) {
+
+                        bservicio.activar(event.getParams());
+                        
+                        SendEmailThread.sendEmail(
+                            event.getSender(),
+                            "Servicio Activado",
+                            "<html><body><h2>✓ Servicio activado exitosamente</h2>" +
+                            "<p>ID del servicio: " + event.getParams().get(0) + "</p></body></html>"
+                        );
+                        System.out.println("✓ Servicio activado exitosamente");
+
+                    } else if (event.getAction() == Token.DEACTIVATE) {
+ 
+                        bservicio.desactivar(event.getParams());
+                        
+                        SendEmailThread.sendEmail(
+                            event.getSender(),
+                            "Servicio Desactivado",
+                            "<html><body><h2>✓ Servicio desactivado exitosamente</h2>" +
+                            "<p>ID del servicio: " + event.getParams().get(0) + "</p></body></html>"
+                        );
+                        System.out.println("✓ Servicio desactivado exitosamente");
+                    /*
+                    } else if (event.getAction() == Token.LIST_BY) {
+                        // Listar alumnos por servicio
+                        // Params: [0]id_servicio
+                        int servicioId = Integer.parseInt(event.getParams().get(0));
+                        
+                        // Obtener nombre del servicio
+                        String[] servicio = bservicio.ver(servicioId);
+                        String nombreServicio = servicio != null ? servicio[1] : "Desconocido";
+                        
+                        // Obtener alumnos
+                        ArrayList<String[]> alumnos = bservicio.listarAlumnosPorServicio(servicioId);
+                        String htmlTable = HtmlTableGenerator.generateAlumnosPorServicioTable(alumnos, nombreServicio);
+
+                        SendEmailThread.sendEmail(
+                            event.getSender(),
+                            "Alumnos Inscritos en " + nombreServicio,
+                            htmlTable
+                        );
+                        System.out.println("✓ Lista de alumnos por servicio enviada por correo");
+                        
+                    } else if (event.getAction() == Token.STATS) {
+                        // Ver estadísticas de servicio
+                        // Params: [0]id_servicio
+                        int servicioId = Integer.parseInt(event.getParams().get(0));
+                        String[] stats = bservicio.obtenerEstadisticas(servicioId);
+                        
+                        String htmlStats = HtmlTableGenerator.generateEstadisticasServicio(stats);
+
+                        SendEmailThread.sendEmail(
+                            event.getSender(),
+                            "Estadísticas del Servicio",
+                            htmlStats
+                        );
+                        System.out.println("✓ Estadísticas del servicio enviadas por correo");
+ */
+                    } else {
+                        System.err.println("✗ Acción no válida");
+                        SendEmailThread.sendEmail(
+                            event.getSender(),
+                            "Error en Comando",
+                            "<html><body><h2>✗ Error</h2>" +
+                            "<p>Acción no válida para servicio</p>" +
+                            "<p>Acciones disponibles: get, activar, desactivar, listarpor, stats</p></body></html>"
+                        );
+                    }
+                } catch (SQLException e) {
+                    System.err.println("✗ Error: " + e.getMessage());
+                    e.printStackTrace();
+                    
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Error al Procesar Servicio",
+                        "<html><body><h2>✗ Error en Base de Datos</h2>" +
+                        "<p>" + e.getMessage() + "</p></body></html>"
+                    );
+                } catch (Exception e) {
+                    System.err.println("✗ Error inesperado: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
 
 
        @Override
@@ -428,6 +585,8 @@ public class MailVerificationThread implements Runnable{
        System.err.println("Formato esperado: usuario <accion> <param1, param2, ...>");
        
         }
+
+
 
                 });
 

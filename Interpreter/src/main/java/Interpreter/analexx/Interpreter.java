@@ -81,6 +81,10 @@ public class Interpreter implements Runnable{
             case Token.INSCRIPCION:   
                 listener.inscripcion(token_event);
             break;
+            
+            case Token.SERVICIO:
+                listener.servicio(token_event);
+            break;
                 
             default:
             System.err.println("Caso de uso no reconocido: " + token_command.getName());

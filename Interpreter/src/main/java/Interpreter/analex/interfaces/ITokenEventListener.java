@@ -17,6 +17,7 @@ public interface ITokenEventListener {
     void horario(TokenEvent tokenEvent);
     void tutor_horario(TokenEvent tokenEvent);
     void inscripcion(TokenEvent tokenEvent);
+    void servicio(TokenEvent tokenEvent);
     
     void error(TokenEvent tokenEvent);
 }

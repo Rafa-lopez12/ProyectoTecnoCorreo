@@ -25,6 +25,7 @@ public class Token {
     public static final int HORARIO = 103;
     public static final int TUTOR_HORARIO = 104;
     public static final int INSCRIPCION = 105;
+    public static final int SERVICIO = 106;
 //    public static final int CLIENT = 101;
 //    public static final int DPTO = 102;
  //   public static final int SOCIAL = 103;
@@ -45,6 +46,12 @@ public class Token {
     public static final int VERIFY = 204;
     public static final int CANCEL = 205;
     public static final int REPORT = 206;
+    public static final int ACTIVATE = 207;
+    public static final int DEACTIVATE = 208;
+    public static final int LIST_IALUMNO = 209;
+    public static final int LIST_ITUTOR = 210;
+    public static final int LIST_ISERVICIO = 211;
+    public static final int STATS = 210;
     
     
     public static final int ERROR_COMMAND = 300;
@@ -63,6 +70,7 @@ public class Token {
     public static final String LEXEME_HORARIO = "horario";
     public static final String LEXEME_TUTORHORARIO = "tutorhorario";
     public static final String LEXEME_INSCRIPCION = "inscripcion";
+    public static final String LEXEME_SERVICIO = "servicio";
     
     
     public static final String LEXEME_ADD = "add";
@@ -72,6 +80,12 @@ public class Token {
     public static final String LEXEME_VERIFY = "verify";
     public static final String LEXEME_CANCEL = "cancel";
     public static final String LEXEME_REPORT = "report";
+    public static final String LEXEME_ACTIVATE = "activar";
+    public static final String LEXEME_DEACTIVATE = "desactivar";
+    public static final String LEXEME_LIST_BY_TUTOR = "listarportutor";
+    public static final String LEXEME_LIST_BY_ALUMNO = "listarporalumno";
+    public static final String LEXEME_LIST_BY_SERVICIO = "listarporservicio";
+    public static final String LEXEME_STATS = "stats";
 
     public static final String LEXEME_ERROR_COMMAND = "UNKNOWN COMMAND";
     public static final String LEXEME_ERROR_CHARACTER = "UNKNOWN CHARACTER";
@@ -171,9 +185,37 @@ public class Token {
         case INSCRIPCION:
             return LEXEME_INSCRIPCION;
             
+        case SERVICIO:
+            return LEXEME_SERVICIO;
             
-            
-            
+         case ADD:
+                return LEXEME_ADD;
+         case DELETE:
+                return LEXEME_DELETE;
+         case MODIFY:
+                return LEXEME_MODIFY;
+         case GET:
+                return LEXEME_GET;
+         case VERIFY:
+                return LEXEME_VERIFY;
+            case CANCEL:
+                return LEXEME_CANCEL;
+            case REPORT:
+                return LEXEME_REPORT;
+            case ACTIVATE:
+                return LEXEME_ACTIVATE;
+            case DEACTIVATE:
+                return LEXEME_DEACTIVATE;
+                
+            // ACCIONES DE LISTADO
+            case LIST_IALUMNO:
+                return LEXEME_LIST_BY_ALUMNO;
+            case LIST_ITUTOR:
+                return LEXEME_LIST_BY_TUTOR;
+            case LIST_ISERVICIO:
+                return LEXEME_LIST_BY_SERVICIO;
+
+           
         case ERROR_COMMAND:
             return LEXEME_ERROR_COMMAND;
         case ERROR_CHARACTER:
@@ -217,6 +259,9 @@ public class Token {
          case LEXEME_INSCRIPCION:
             return INSCRIPCION;  
             
+         case LEXEME_SERVICIO:
+            return SERVICIO;
+            
             
         case LEXEME_ADD:
             return ADD;
@@ -232,6 +277,21 @@ public class Token {
             return CANCEL;
         case LEXEME_REPORT:
             return REPORT;
+            
+        case LEXEME_ACTIVATE:
+            return ACTIVATE;
+        case LEXEME_DEACTIVATE:
+            return DEACTIVATE;
+        case LEXEME_LIST_BY_ALUMNO:
+            return LIST_IALUMNO;
+        case LEXEME_LIST_BY_TUTOR:
+            return LIST_ITUTOR;
+        case LEXEME_LIST_BY_SERVICIO:
+            return LIST_ISERVICIO;
+
+        case LEXEME_STATS:
+            return STATS;
+            
         case LEXEME_ERROR_COMMAND:
             return ERROR_COMMAND;
 
