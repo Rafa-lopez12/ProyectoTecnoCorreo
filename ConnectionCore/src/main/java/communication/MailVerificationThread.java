@@ -5,11 +5,17 @@
 package communication;
 
 import Bussines.BAlumno;
+import Bussines.BAsistencia;
 import Bussines.BHorario;
+import Bussines.BInforme_clase;
 import Bussines.BInscripcion;
+import Bussines.BLicencia;
+import Bussines.BPago;
+import Bussines.BReprogramacion;
 import Bussines.BServicio;
 import Bussines.BTutor;
 import Bussines.BTutorHorario;
+import Bussines.BVenta;
 import Interfaces.IEmailEventListener;
 import Interpreter.analex.utils.Token;
 import Interpreter.analex.interfaces.ITokenEventListener;
@@ -56,6 +62,12 @@ public class MailVerificationThread implements Runnable{
     private BTutorHorario btutorhorario;
     private BInscripcion binscripcion;
     private BServicio bservicio;
+    private BInforme_clase binformeClase;
+    private BAsistencia basistencia;
+    private BLicencia blicencia;
+    private BReprogramacion breprogramacion;
+    private BVenta bventa;
+    private BPago bpago;
     
     private Socket socket;
     private BufferedReader input;
@@ -80,6 +92,13 @@ public class MailVerificationThread implements Runnable{
         bhorario = new BHorario();      
         btutorhorario = new BTutorHorario();
         binscripcion = new BInscripcion();
+        binformeClase= new BInforme_clase();
+        basistencia = new BAsistencia();
+        blicencia = new BLicencia();
+        breprogramacion = new BReprogramacion();
+        bventa = new BVenta();
+        bpago = new BPago();
+      
     }
 
     @Override
@@ -576,6 +595,538 @@ public class MailVerificationThread implements Runnable{
                     e.printStackTrace();
                 }
             }
+       @Override
+        public void informeclase(TokenEvent event) {
+                try {
+                    System.out.println("=== COMANDO INFORME_CLASE ===");
+                    System.out.println(event);
+                    if (event.getAction() == Token.ADD) {
+                        binformeClase.guardar(event.getParams());
+                        System.out.println("✓ Informe de clase agregado exitosamente");
+                    } else if (event.getAction() == Token.MODIFY) {
+                        binformeClase.modificar(event.getParams());
+                        System.out.println("✓ Informe de clase modificado");
+                    } else if (event.getAction() == Token.DELETE) {
+                        binformeClase.eliminar(event.getParams());
+                        System.out.println("✓ Informe de clase eliminado");
+                    } else if (event.getAction() == Token.GET) {
+                        // LISTAR INFORMES DE CLASE
+                        ArrayList<String[]> informes = binformeClase.listar();
+                        String htmlTable = HtmlTableGenerator.generateInformeClaseTable(informes);
+                        SendEmailThread.sendEmail(
+                            event.getSender(),
+                            "Lista de Informes de Clase",
+                            htmlTable
+                        );
+                        System.out.println("✓ Lista de informes enviada por correo");
+                    } else {
+                        System.err.println("✗ Acción no válida");
+                    }
+                } catch (SQLException e) {
+                    System.err.println("✗ Error: " + e.getMessage());
+                    e.printStackTrace();
+                }
+        }
+        
+        @Override
+        public void asistencia(TokenEvent event) {
+            try {
+                System.out.println("=== COMANDO ASISTENCIA ===");
+                System.out.println(event);
+
+                if (event.getAction() == Token.ADD) {
+                    int asistenciaId = basistencia.guardar(event.getParams());
+                    
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Asistencia Registrada",
+                        "<html><body><h2>✓ Asistencia registrada exitosamente</h2>" +
+                        "<p>ID de asistencia: " + asistenciaId + "</p></body></html>"
+                    );
+                    System.out.println("✓ Asistencia agregada exitosamente");
+
+                } else if (event.getAction() == Token.MODIFY) {
+                    basistencia.modificar(event.getParams());
+                    
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Asistencia Modificada",
+                        "<html><body><h2>✓ Asistencia modificada exitosamente</h2></body></html>"
+                    );
+                    System.out.println("✓ Asistencia modificada");
+
+                } else if (event.getAction() == Token.DELETE) {
+                    basistencia.eliminar(event.getParams());
+                    
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Asistencia Eliminada",
+                        "<html><body><h2>✓ Asistencia eliminada exitosamente</h2></body></html>"
+                    );
+                    System.out.println("✓ Asistencia eliminada");
+
+                } else if (event.getAction() == Token.GET) {
+                    ArrayList<String[]> asistencias = basistencia.listar();
+                    String htmlTable = HtmlTableGenerator.generateAsistenciaTable(asistencias);
+
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Lista de Asistencias",
+                        htmlTable
+                    );
+                    System.out.println("✓ Lista de asistencias enviada por correo");
+
+                } else {
+                    System.err.println("✗ Acción no válida");
+                }
+            } catch (SQLException e) {
+                System.err.println("✗ Error: " + e.getMessage());
+                e.printStackTrace();
+                
+                SendEmailThread.sendEmail(
+                    event.getSender(),
+                    "Error al Procesar Asistencia",
+                    "<html><body><h2>✗ Error en Base de Datos</h2>" +
+                    "<p>" + e.getMessage() + "</p></body></html>"
+                );
+            }
+        }
+
+        @Override
+        public void licencia(TokenEvent event) {
+            try {
+                System.out.println("=== COMANDO LICENCIA ===");
+                System.out.println(event);
+
+                if (event.getAction() == Token.ADD) {
+                    int licenciaId = blicencia.guardar(event.getParams());
+                    
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Licencia Solicitada",
+                        "<html><body><h2>✓ Licencia solicitada exitosamente</h2>" +
+                        "<p>ID de licencia: " + licenciaId + "</p>" +
+                        "<p>Estado: Pendiente de aprobación</p></body></html>"
+                    );
+                    System.out.println("✓ Licencia agregada exitosamente");
+
+                } else if (event.getAction() == Token.MODIFY) {
+                    blicencia.modificar(event.getParams());
+                    
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Licencia Modificada",
+                        "<html><body><h2>✓ Licencia modificada exitosamente</h2></body></html>"
+                    );
+                    System.out.println("✓ Licencia modificada");
+
+                } else if (event.getAction() == Token.DELETE) {
+                    blicencia.eliminar(event.getParams());
+                    
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Licencia Eliminada",
+                        "<html><body><h2>✓ Licencia eliminada exitosamente</h2></body></html>"
+                    );
+                    System.out.println("✓ Licencia eliminada");
+
+                } else if (event.getAction() == Token.GET) {
+                    ArrayList<String[]> licencias = blicencia.listar();
+                    String htmlTable = HtmlTableGenerator.generateLicenciaTable(licencias);
+
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Lista de Licencias",
+                        htmlTable
+                    );
+                    System.out.println("✓ Lista de licencias enviada por correo");
+
+                } else {
+                    System.err.println("✗ Acción no válida");
+                }
+            } catch (SQLException e) {
+                System.err.println("✗ Error: " + e.getMessage());
+                e.printStackTrace();
+                
+                SendEmailThread.sendEmail(
+                    event.getSender(),
+                    "Error al Procesar Licencia",
+                    "<html><body><h2>✗ Error en Base de Datos</h2>" +
+                    "<p>" + e.getMessage() + "</p></body></html>"
+                );
+            }
+        }
+
+        @Override
+        public void reprogramacion(TokenEvent event) {
+            try {
+                System.out.println("=== COMANDO REPROGRAMACION ===");
+                System.out.println(event);
+
+                if (event.getAction() == Token.ADD) {
+                    int reprogramacionId = breprogramacion.guardar(event.getParams());
+                    
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Reprogramación Creada",
+                        "<html><body><h2>✓ Reprogramación creada exitosamente</h2>" +
+                        "<p>ID de reprogramación: " + reprogramacionId + "</p>" +
+                        "<p>Estado: Programada</p></body></html>"
+                    );
+                    System.out.println("✓ Reprogramación agregada exitosamente");
+
+                } else if (event.getAction() == Token.MODIFY) {
+                    breprogramacion.modificar(event.getParams());
+                    
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Reprogramación Modificada",
+                        "<html><body><h2>✓ Reprogramación modificada exitosamente</h2></body></html>"
+                    );
+                    System.out.println("✓ Reprogramación modificada");
+
+                } else if (event.getAction() == Token.DELETE) {
+                    breprogramacion.eliminar(event.getParams());
+                    
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Reprogramación Eliminada",
+                        "<html><body><h2>✓ Reprogramación eliminada exitosamente</h2></body></html>"
+                    );
+                    System.out.println("✓ Reprogramación eliminada");
+
+                } else if (event.getAction() == Token.GET) {
+                    ArrayList<String[]> reprogramaciones = breprogramacion.listar();
+                    String htmlTable = HtmlTableGenerator.generateReprogramacionTable(reprogramaciones);
+
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Lista de Reprogramaciones",
+                        htmlTable
+                    );
+                    System.out.println("✓ Lista de reprogramaciones enviada por correo");
+
+                } else if (event.getAction() == Token.MARCAR_REALIZADA) {
+                    int reprogramacionId = Integer.parseInt(event.getParams().get(0));
+                    breprogramacion.marcarRealizada(reprogramacionId);
+                    
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Reprogramación Realizada",
+                        "<html><body><h2>✓ Reprogramación marcada como realizada</h2>" +
+                        "<p>ID de reprogramación: " + reprogramacionId + "</p></body></html>"
+                    );
+                    System.out.println("✓ Reprogramación marcada como realizada");
+
+
+                } else {
+                    System.err.println("✗ Acción no válida");
+                }
+            } catch (SQLException e) {
+                System.err.println("✗ Error: " + e.getMessage());
+                e.printStackTrace();
+                
+                SendEmailThread.sendEmail(
+                    event.getSender(),
+                    "Error al Procesar Reprogramación",
+                    "<html><body><h2>✗ Error en Base de Datos</h2>" +
+                    "<p>" + e.getMessage() + "</p></body></html>"
+                );
+            }
+        }
+        @Override
+       public void venta(TokenEvent event) {
+                try {
+                System.out.println("=== COMANDO VENTA ===");
+                System.out.println(event);
+
+                if (event.getAction() == Token.ADD) {
+                    int ventaId = bventa.guardar(event.getParams());
+                    
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Venta Registrada",
+                        "<html><body><h2>✓ Venta registrada exitosamente</h2>" +
+                        "<p>ID de venta: " + ventaId + "</p>" +
+                        "<p>La venta ha sido creada correctamente.</p></body></html>"
+                    );
+                    System.out.println("✓ Venta agregada exitosamente. ID: " + ventaId);
+
+                } else if (event.getAction() == Token.MODIFY) {
+                    bventa.modificar(event.getParams());
+                    
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Venta Modificada",
+                        "<html><body><h2>✓ Venta modificada exitosamente</h2></body></html>"
+                    );
+                    System.out.println("✓ Venta modificada");
+
+                } else if (event.getAction() == Token.DELETE) {
+                    bventa.eliminar(event.getParams());
+                    
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Venta Eliminada",
+                        "<html><body><h2>✓ Venta eliminada exitosamente</h2></body></html>"
+                    );
+                    System.out.println("✓ Venta eliminada");
+
+                } else if (event.getAction() == Token.GET) {
+                    ArrayList<String[]> ventas = bventa.listar();
+                    String htmlTable = HtmlTableGenerator.generateVentaTable(ventas);
+
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Lista de Ventas",
+                        htmlTable
+                    );
+                    System.out.println("✓ Lista de ventas enviada por correo");
+
+                } else if (event.getAction() == Token.LIST_POR_ALUMNO_VENTA) {
+                    int alumnoId = Integer.parseInt(event.getParams().get(0));
+                    ArrayList<String[]> ventas = bventa.listarPorAlumno(alumnoId);
+                    
+                    // Obtener nombre del alumno
+                    String[] alumno = balumno.ver(alumnoId);
+                    String nombreAlumno = alumno != null ? alumno[1] + " " + alumno[2] : "Desconocido";
+                    
+                    String htmlTable = HtmlTableGenerator.generateVentasPorAlumnoTable(ventas, nombreAlumno);
+
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Ventas de " + nombreAlumno,
+                        htmlTable
+                    );
+                    System.out.println("✓ Ventas del alumno enviadas por correo");
+
+                } else if (event.getAction() == Token.LIST_POR_MES) {
+                    String mes = event.getParams().get(0);
+                    ArrayList<String[]> ventas = bventa.listarPorMes(mes);
+                    
+                    String htmlTable = HtmlTableGenerator.generateVentasPorMesTable(ventas, mes);
+
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Ventas de " + mes,
+                        htmlTable
+                    );
+                    System.out.println("✓ Ventas del mes enviadas por correo");
+
+                } else if (event.getAction() == Token.LIST_VENCIDAS) {
+                    ArrayList<String[]> ventas = bventa.listarVencidas();
+                    String htmlTable = HtmlTableGenerator.generateVentasVencidasTable(ventas);
+
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Ventas Vencidas",
+                        htmlTable
+                    );
+                    System.out.println("✓ Ventas vencidas enviadas por correo");
+
+                } else if (event.getAction() == Token.LIST_PENDIENTES_VENTA) {
+                    ArrayList<String[]> ventas = bventa.listarPendientes();
+                    String htmlTable = HtmlTableGenerator.generateVentasPendientesTable(ventas);
+
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Ventas Pendientes",
+                        htmlTable
+                    );
+                    System.out.println("✓ Ventas pendientes enviadas por correo");
+
+                } else if (event.getAction() == Token.LIST_PAGADAS) {
+                    ArrayList<String[]> ventas = bventa.listarPagadas();
+                    String htmlTable = HtmlTableGenerator.generateVentasPagadasTable(ventas);
+
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Ventas Pagadas",
+                        htmlTable
+                    );
+                    System.out.println("✓ Ventas pagadas enviadas por correo");
+
+                } else if (event.getAction() == Token.MARCAR_PAGADO) {
+                    int ventaId = Integer.parseInt(event.getParams().get(0));
+                    bventa.marcarComoPagado(ventaId);
+                    
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Venta Marcada como Pagada",
+                        "<html><body><h2>✓ Venta marcada como pagada</h2>" +
+                        "<p>ID de venta: " + ventaId + "</p>" +
+                        "<p>El saldo pendiente se ha establecido en 0.</p></body></html>"
+                    );
+                    System.out.println("✓ Venta marcada como pagada");
+
+                } else if (event.getAction() == Token.MARCAR_VENCIDO) {
+                    int ventaId = Integer.parseInt(event.getParams().get(0));
+                    bventa.marcarComoVencido(ventaId);
+                    
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Venta Marcada como Vencida",
+                        "<html><body><h2>⚠ Venta marcada como vencida</h2>" +
+                        "<p>ID de venta: " + ventaId + "</p></body></html>"
+                    );
+                    System.out.println("✓ Venta marcada como vencida");
+
+                } else if (event.getAction() == Token.ESTADISTICAS) {
+                    String[] stats = bventa.obtenerEstadisticas();
+                    String htmlStats = HtmlTableGenerator.generateEstadisticasVentas(stats);
+
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Estadísticas de Ventas",
+                        htmlStats
+                    );
+                    System.out.println("✓ Estadísticas de ventas enviadas por correo");
+
+                } else {
+                    System.err.println("✗ Acción no válida");
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Error en Comando",
+                        "<html><body><h2>✗ Error</h2>" +
+                        "<p>Acción no válida para venta</p></body></html>"
+                    );
+                }
+            } catch (SQLException e) {
+                System.err.println("✗ Error: " + e.getMessage());
+                e.printStackTrace();
+                
+                SendEmailThread.sendEmail(
+                    event.getSender(),
+                    "Error al Procesar Venta",
+                    "<html><body><h2>✗ Error en Base de Datos</h2>" +
+                    "<p>" + e.getMessage() + "</p></body></html>"
+                );
+            } catch (Exception e) {
+                System.err.println("✗ Error inesperado: " + e.getMessage());
+                e.printStackTrace();
+                
+                SendEmailThread.sendEmail(
+                    event.getSender(),
+                    "Error al Procesar Venta",
+                    "<html><body><h2>✗ Error</h2>" +
+                    "<p>" + e.getMessage() + "</p></body></html>"
+                );
+            }
+        }
+
+        @Override
+        public void pago(TokenEvent event) {
+                try {
+                System.out.println("=== COMANDO PAGO ===");
+                System.out.println(event);
+
+                if (event.getAction() == Token.ADD) {
+                    int pagoId = bpago.guardar(event.getParams());
+                    
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Pago Registrado",
+                        "<html><body><h2>✓ Pago registrado exitosamente</h2>" +
+                        "<p>ID de pago: " + pagoId + "</p>" +
+                        "<p>La venta asociada se ha actualizado automáticamente.</p></body></html>"
+                    );
+                    System.out.println("✓ Pago agregado exitosamente. ID: " + pagoId);
+
+                } else if (event.getAction() == Token.MODIFY) {
+                    bpago.modificar(event.getParams());
+                    
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Pago Modificado",
+                        "<html><body><h2>✓ Pago modificado exitosamente</h2>" +
+                        "<p>La venta asociada se ha recalculado automáticamente.</p></body></html>"
+                    );
+                    System.out.println("✓ Pago modificado");
+
+                } else if (event.getAction() == Token.DELETE) {
+                    bpago.eliminar(event.getParams());
+                    
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Pago Eliminado",
+                        "<html><body><h2>✓ Pago eliminado exitosamente</h2>" +
+                        "<p>La venta asociada se ha recalculado automáticamente.</p></body></html>"
+                    );
+                    System.out.println("✓ Pago eliminado");
+
+                } else if (event.getAction() == Token.GET) {
+                    ArrayList<String[]> pagos = bpago.listar();
+                    String htmlTable = HtmlTableGenerator.generatePagoTable(pagos);
+
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Lista de Pagos",
+                        htmlTable
+                    );
+                    System.out.println("✓ Lista de pagos enviada por correo");
+
+                } else if (event.getAction() == Token.LIST_POR_VENTA) {
+                    int ventaId = Integer.parseInt(event.getParams().get(0));
+                    ArrayList<String[]> pagos = bpago.listarPorVenta(ventaId);
+                    
+                    String htmlTable = HtmlTableGenerator.generatePagosPorVentaTable(pagos, ventaId);
+
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Pagos de Venta #" + ventaId,
+                        htmlTable
+                    );
+                    System.out.println("✓ Pagos de la venta enviados por correo");
+
+                } else if (event.getAction() == Token.LIST_POR_ALUMNO_VENTA) {
+                    // Reutilizamos la misma acción para listar pagos por alumno
+                    int alumnoId = Integer.parseInt(event.getParams().get(0));
+                    ArrayList<String[]> pagos = bpago.listarPorAlumno(alumnoId);
+                    
+                    // Obtener nombre del alumno
+                    String[] alumno = balumno.ver(alumnoId);
+                    String nombreAlumno = alumno != null ? alumno[1] + " " + alumno[2] : "Desconocido";
+                    
+                    String htmlTable = HtmlTableGenerator.generatePagosPorAlumnoTable(pagos, nombreAlumno);
+
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Pagos de " + nombreAlumno,
+                        htmlTable
+                    );
+                    System.out.println("✓ Pagos del alumno enviados por correo");
+
+                } else {
+                    System.err.println("✗ Acción no válida");
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Error en Comando",
+                        "<html><body><h2>✗ Error</h2>" +
+                        "<p>Acción no válida para pago</p></body></html>"
+                    );
+                }
+            } catch (SQLException e) {
+                System.err.println("✗ Error: " + e.getMessage());
+                e.printStackTrace();
+                
+                SendEmailThread.sendEmail(
+                    event.getSender(),
+                    "Error al Procesar Pago",
+                    "<html><body><h2>✗ Error en Base de Datos</h2>" +
+                    "<p>" + e.getMessage() + "</p></body></html>"
+                );
+            } catch (Exception e) {
+                System.err.println("✗ Error inesperado: " + e.getMessage());
+                e.printStackTrace();
+                
+                SendEmailThread.sendEmail(
+                    event.getSender(),
+                    "Error al Procesar Pago",
+                    "<html><body><h2>✗ Error</h2>" +
+                    "<p>" + e.getMessage() + "</p></body></html>"
+                );
+            }
+        }
 
 
        @Override
@@ -585,6 +1136,12 @@ public class MailVerificationThread implements Runnable{
        System.err.println("Formato esperado: usuario <accion> <param1, param2, ...>");
        
         }
+
+            
+
+            
+
+            
 
 
 

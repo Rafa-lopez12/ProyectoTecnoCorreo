@@ -663,9 +663,337 @@ public class HtmlTableGenerator {
 
             return html.toString();
         }
+        
+        
+        public static String generateInformeClaseTable(ArrayList<String[]> informes) {
+            StringBuilder html = new StringBuilder();
+            html.append("<!DOCTYPE html>");
+            html.append("<html><head>");
+            html.append("<meta charset='UTF-8'>");
+            html.append("<style>");
+            html.append("body { font-family: Arial, sans-serif; margin: 20px; }");
+            html.append("h2 { color: #333; }");
+            html.append("table { border-collapse: collapse; width: 100%; margin-top: 20px; }");
+            html.append("th { background-color: #4CAF50; color: white; padding: 12px; text-align: left; font-weight: bold; }");
+            html.append("td { border: 1px solid #ddd; padding: 10px; }");
+            html.append("tr:nth-child(even) { background-color: #f2f2f2; }");
+            html.append("tr:hover { background-color: #e0e0e0; }");
+            html.append(".excelente { color: #4CAF50; font-weight: bold; }");
+            html.append(".bueno { color: #2196F3; }");
+            html.append(".regular { color: #FF9800; }");
+            html.append(".necesita_refuerzo { color: #F44336; }");
+            html.append(".calificacion { text-align: center; font-weight: bold; font-size: 1.1em; }");
+            html.append("</style>");
+            html.append("</head><body>");
+            html.append("<h2>📋 Lista de Informes de Clase</h2>");
 
-        // Tabla de alumnos por servicio
+            if (informes.isEmpty()) {
+                html.append("<p>No hay informes registrados.</p>");
+            } else {
+                html.append("<table>");
+                html.append("<tr>");
+                html.append("<th>ID</th>");
+                html.append("<th>Alumno</th>");
+                html.append("<th>Tutor</th>");
+                html.append("<th>Servicio</th>");
+                html.append("<th>Fecha</th>");
+                html.append("<th>Temas Vistos</th>");
+                html.append("<th>Comprensión</th>");
+                html.append("<th>Participación</th>");
+                html.append("<th>Calificación</th>");
+                html.append("<th>Estado</th>");
+                html.append("</tr>");
 
+                for (String[] informe : informes) {
+                    html.append("<tr>");
+                    html.append("<td>").append(informe[0]).append("</td>"); // ID
+                    html.append("<td>").append(informe[2]).append("</td>"); // Alumno
+                    html.append("<td>").append(informe[3]).append("</td>"); // Tutor
+                    html.append("<td>").append(informe[4]).append("</td>"); // Servicio
+                    html.append("<td>").append(informe[5]).append("</td>"); // Fecha
 
+                    // Temas vistos (truncar si es muy largo)
+                    String temas = informe[6] != null ? informe[6] : "";
+                    if (temas.length() > 50) {
+                        temas = temas.substring(0, 47) + "...";
+                    }
+                    html.append("<td>").append(temas).append("</td>");
+
+                    // Nivel de comprensión con color
+                    String comprension = informe[7] != null ? informe[7] : "N/A";
+                    String claseComprension = "";
+                    switch(comprension.toLowerCase()) {
+                        case "excelente":
+                            claseComprension = "excelente";
+                            break;
+                        case "bueno":
+                            claseComprension = "bueno";
+                            break;
+                        case "regular":
+                            claseComprension = "regular";
+                            break;
+                        case "necesita_refuerzo":
+                            claseComprension = "necesita_refuerzo";
+                            break;
+                    }
+                    html.append("<td class='").append(claseComprension).append("'>").append(comprension).append("</td>");
+
+                    // Participación
+                    html.append("<td>").append(informe[8] != null ? informe[8] : "N/A").append("</td>");
+
+                    // Calificación
+                    html.append("<td class='calificacion'>").append(informe[9]).append("</td>");
+
+                    // Estado
+                    html.append("<td>").append(informe[10]).append("</td>");
+
+                    html.append("</tr>");
+                }
+
+                html.append("</table>");
+                html.append("<p style='margin-top: 20px; color: #666;'>Total de informes: ").append(informes.size()).append("</p>");
+            }
+
+            html.append("</body></html>");
+            return html.toString();
+        }
+        
+        
+        public static String generateAsistenciaTable(ArrayList<String[]> asistencias) {
+            StringBuilder html = new StringBuilder();
+
+            html.append("<!DOCTYPE html>");
+            html.append("<html>");
+            html.append("<head>");
+            html.append("<meta charset='UTF-8'>");
+            html.append("<style>");
+            html.append("body { font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5; }");
+            html.append("h2 { color: #333; }");
+            html.append("table { border-collapse: collapse; width: 100%; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }");
+            html.append("th { background-color: #4CAF50; color: white; padding: 12px; text-align: left; }");
+            html.append("td { padding: 10px; border-bottom: 1px solid #ddd; }");
+            html.append("tr:hover { background-color: #f5f5f5; }");
+            html.append(".presente { color: #4CAF50; font-weight: bold; }");
+            html.append(".ausente { color: #F44336; font-weight: bold; }");
+            html.append(".tardanza { color: #FF9800; font-weight: bold; }");
+            html.append(".justificado { color: #2196F3; font-weight: bold; }");
+            html.append(".total { margin-top: 20px; font-weight: bold; color: #4CAF50; }");
+            html.append("</style>");
+            html.append("</head>");
+            html.append("<body>");
+
+            html.append("<h2>📋 Lista de Asistencias</h2>");
+
+            if (asistencias.isEmpty()) {
+                html.append("<p>No hay asistencias registradas.</p>");
+            } else {
+                html.append("<table>");
+                html.append("<tr>");
+                html.append("<th>ID</th>");
+                html.append("<th>Inscripción ID</th>");
+                html.append("<th>Alumno</th>");
+                html.append("<th>Tutor</th>");
+                html.append("<th>Servicio</th>");
+                html.append("<th>Fecha</th>");
+                html.append("<th>Estado</th>");
+                html.append("<th>Observaciones</th>");
+                html.append("</tr>");
+
+                // asistencia[0] = id
+                // asistencia[1] = inscripcion_id
+                // asistencia[2] = alumno_nombre
+                // asistencia[3] = tutor_nombre
+                // asistencia[4] = servicio_nombre
+                // asistencia[5] = fecha
+                // asistencia[6] = estado
+                // asistencia[7] = observaciones
+
+                for (String[] asistencia : asistencias) {
+                    html.append("<tr>");
+                    html.append("<td>").append(asistencia[0]).append("</td>");
+                    html.append("<td>").append(asistencia[1]).append("</td>");
+                    html.append("<td>").append(asistencia[2]).append("</td>");
+                    html.append("<td>").append(asistencia[3]).append("</td>");
+                    html.append("<td>").append(asistencia[4]).append("</td>");
+                    html.append("<td>").append(asistencia[5]).append("</td>");
+
+                    String estado = asistencia[6];
+                    String cssClass = "";
+                    if (estado.equals("presente")) cssClass = "presente";
+                    else if (estado.equals("ausente")) cssClass = "ausente";
+                    else if (estado.equals("tardanza")) cssClass = "tardanza";
+                    else if (estado.equals("justificado")) cssClass = "justificado";
+                    html.append("<td class='").append(cssClass).append("'>").append(estado.toUpperCase()).append("</td>");
+
+                    html.append("<td>").append(asistencia[7] != null ? asistencia[7] : "").append("</td>");
+                    html.append("</tr>");
+                }
+
+                html.append("</table>");
+                html.append("<p class='total'>Total de asistencias: ").append(asistencias.size()).append("</p>");
+            }
+
+            html.append("</body>");
+            html.append("</html>");
+
+            return html.toString();
+        }
+
+    
+
+        public static String generateLicenciaTable(ArrayList<String[]> licencias) {
+            StringBuilder html = new StringBuilder();
+
+            html.append("<!DOCTYPE html>");
+            html.append("<html>");
+            html.append("<head>");
+            html.append("<meta charset='UTF-8'>");
+            html.append("<style>");
+            html.append("body { font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5; }");
+            html.append("h2 { color: #333; }");
+            html.append("table { border-collapse: collapse; width: 100%; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }");
+            html.append("th { background-color: #FF9800; color: white; padding: 12px; text-align: left; }");
+            html.append("td { padding: 10px; border-bottom: 1px solid #ddd; }");
+            html.append("tr:hover { background-color: #f5f5f5; }");
+            html.append(".pendiente { color: #FF9800; font-weight: bold; }");
+            html.append(".aprobada { color: #4CAF50; font-weight: bold; }");
+            html.append(".rechazada { color: #F44336; font-weight: bold; }");
+            html.append(".total { margin-top: 20px; font-weight: bold; color: #FF9800; }");
+            html.append("</style>");
+            html.append("</head>");
+            html.append("<body>");
+
+            html.append("<h2>📝 Lista de Licencias</h2>");
+
+            if (licencias.isEmpty()) {
+                html.append("<p>No hay licencias registradas.</p>");
+            } else {
+                html.append("<table>");
+                html.append("<tr>");
+                html.append("<th>ID</th>");
+                html.append("<th>Tutor ID</th>");
+                html.append("<th>Tutor</th>");
+                html.append("<th>Fecha Licencia</th>");
+                html.append("<th>Motivo</th>");
+                html.append("<th>Estado</th>");
+                html.append("<th>Fecha Solicitud</th>");
+                html.append("</tr>");
+
+                // licencia[0] = id
+                // licencia[1] = tutor_id
+                // licencia[2] = tutor_nombre
+                // licencia[3] = fecha_licencia
+                // licencia[4] = motivo
+                // licencia[5] = estado
+                // licencia[6] = fecha_solicitud
+
+                for (String[] licencia : licencias) {
+                    html.append("<tr>");
+                    html.append("<td>").append(licencia[0]).append("</td>");
+                    html.append("<td>").append(licencia[1]).append("</td>");
+                    html.append("<td><strong>").append(licencia[2]).append("</strong></td>");
+                    html.append("<td>").append(licencia[3]).append("</td>");
+                    html.append("<td>").append(licencia[4]).append("</td>");
+
+                    String estado = licencia[5];
+                    String cssClass = "";
+                    if (estado.equals("pendiente")) cssClass = "pendiente";
+                    else if (estado.equals("aprobada")) cssClass = "aprobada";
+                    else if (estado.equals("rechazada")) cssClass = "rechazada";
+                    html.append("<td class='").append(cssClass).append("'>").append(estado.toUpperCase()).append("</td>");
+
+                    html.append("<td>").append(licencia[6]).append("</td>");
+                    html.append("</tr>");
+                }
+
+                html.append("</table>");
+                html.append("<p class='total'>Total de licencias: ").append(licencias.size()).append("</p>");
+            }
+
+            html.append("</body>");
+            html.append("</html>");
+
+            return html.toString();
+        }
+
+     
+
+        public static String generateReprogramacionTable(ArrayList<String[]> reprogramaciones) {
+            StringBuilder html = new StringBuilder();
+
+            html.append("<!DOCTYPE html>");
+            html.append("<html>");
+            html.append("<head>");
+            html.append("<meta charset='UTF-8'>");
+            html.append("<style>");
+            html.append("body { font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5; }");
+            html.append("h2 { color: #333; }");
+            html.append("table { border-collapse: collapse; width: 100%; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }");
+            html.append("th { background-color: #9C27B0; color: white; padding: 12px; text-align: left; }");
+            html.append("td { padding: 10px; border-bottom: 1px solid #ddd; }");
+            html.append("tr:hover { background-color: #f5f5f5; }");
+            html.append(".programada { color: #2196F3; font-weight: bold; }");
+            html.append(".realizada { color: #4CAF50; font-weight: bold; }");
+            html.append(".cancelada { color: #F44336; font-weight: bold; }");
+            html.append(".total { margin-top: 20px; font-weight: bold; color: #9C27B0; }");
+            html.append("</style>");
+            html.append("</head>");
+            html.append("<body>");
+
+            html.append("<h2>🔄 Lista de Reprogramaciones</h2>");
+
+            if (reprogramaciones.isEmpty()) {
+                html.append("<p>No hay reprogramaciones registradas.</p>");
+            } else {
+                html.append("<table>");
+                html.append("<tr>");
+                html.append("<th>ID</th>");
+                html.append("<th>Licencia ID</th>");
+                html.append("<th>Tutor</th>");
+                html.append("<th>Fecha Licencia</th>");
+                html.append("<th>Fecha Original</th>");
+                html.append("<th>Fecha Nueva</th>");
+                html.append("<th>Estado</th>");
+                html.append("<th>Observaciones</th>");
+                html.append("</tr>");
+
+                // reprogramacion[0] = id
+                // reprogramacion[1] = licencia_id
+                // reprogramacion[2] = tutor_nombre
+                // reprogramacion[3] = fecha_licencia
+                // reprogramacion[4] = fecha_original
+                // reprogramacion[5] = fecha_nueva
+                // reprogramacion[6] = estado
+                // reprogramacion[7] = observaciones
+
+                for (String[] reprog : reprogramaciones) {
+                    html.append("<tr>");
+                    html.append("<td>").append(reprog[0]).append("</td>");
+                    html.append("<td>").append(reprog[1]).append("</td>");
+                    html.append("<td><strong>").append(reprog[2]).append("</strong></td>");
+                    html.append("<td>").append(reprog[3]).append("</td>");
+                    html.append("<td>").append(reprog[4]).append("</td>");
+                    html.append("<td><strong>").append(reprog[5]).append("</strong></td>");
+
+                    String estado = reprog[6];
+                    String cssClass = "";
+                    if (estado.equals("programada")) cssClass = "programada";
+                    else if (estado.equals("realizada")) cssClass = "realizada";
+                    else if (estado.equals("cancelada")) cssClass = "cancelada";
+                    html.append("<td class='").append(cssClass).append("'>").append(estado.toUpperCase()).append("</td>");
+
+                    html.append("<td>").append(reprog[7] != null ? reprog[7] : "").append("</td>");
+                    html.append("</tr>");
+                }
+
+                html.append("</table>");
+                html.append("<p class='total'>Total de reprogramaciones: ").append(reprogramaciones.size()).append("</p>");
+            }
+
+            html.append("</body>");
+            html.append("</html>");
+
+            return html.toString();
+        }
 
 }

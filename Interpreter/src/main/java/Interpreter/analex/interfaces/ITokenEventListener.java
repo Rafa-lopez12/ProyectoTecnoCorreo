@@ -18,6 +18,11 @@ public interface ITokenEventListener {
     void tutor_horario(TokenEvent tokenEvent);
     void inscripcion(TokenEvent tokenEvent);
     void servicio(TokenEvent tokenEvent);
-    
+    void informeclase(TokenEvent tokenEvent);
     void error(TokenEvent tokenEvent);
+    void asistencia(TokenEvent tokenEvent);
+    void licencia(TokenEvent tokenEvent);
+    void reprogramacion(TokenEvent tokenEvent);
+    void venta(TokenEvent tokenEvent);
+    void pago(TokenEvent tokenEvent);
 }

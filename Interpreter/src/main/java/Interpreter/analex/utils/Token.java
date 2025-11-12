@@ -26,6 +26,12 @@ public class Token {
     public static final int TUTOR_HORARIO = 104;
     public static final int INSCRIPCION = 105;
     public static final int SERVICIO = 106;
+    public static final int INFORMECLASE = 107;
+    public static final int ASISTENCIA = 108;
+    public static final int LICENCIA = 109;
+    public static final int REPROGRAMACION = 110;
+    public static final int VENTA = 111;
+    public static final int PAGO = 112;
 //    public static final int CLIENT = 101;
 //    public static final int DPTO = 102;
  //   public static final int SOCIAL = 103;
@@ -51,7 +57,19 @@ public class Token {
     public static final int LIST_IALUMNO = 209;
     public static final int LIST_ITUTOR = 210;
     public static final int LIST_ISERVICIO = 211;
-    public static final int STATS = 210;
+    public static final int STATS = 212;
+    public static final int MARCAR_REALIZADA = 213;
+    
+    public static final int LIST_POR_ALUMNO_VENTA = 224;
+    public static final int LIST_POR_MES = 225;
+    public static final int LIST_VENCIDAS = 226;
+    public static final int LIST_PENDIENTES_VENTA = 227;
+    public static final int LIST_PAGADAS = 228;
+    public static final int MARCAR_PAGADO = 229;
+    public static final int MARCAR_VENCIDO = 230;
+    public static final int ESTADISTICAS = 231;
+    public static final int LIST_POR_VENTA = 232;
+    public static final int REGISTRAR_PAGO = 233;
     
     
     public static final int ERROR_COMMAND = 300;
@@ -71,6 +89,12 @@ public class Token {
     public static final String LEXEME_TUTORHORARIO = "tutorhorario";
     public static final String LEXEME_INSCRIPCION = "inscripcion";
     public static final String LEXEME_SERVICIO = "servicio";
+    public static final String LEXEME_INFORMECLASE = "informeclase";
+    public static final String LEXEME_ASISTENCIA = "asistencia";
+    public static final String LEXEME_LICENCIA = "licencia";
+    public static final String LEXEME_REPROGRAMACION = "reprogramacion";
+    public static final String LEXEME_VENTA = "venta";
+    public static final String LEXEME_PAGO = "pago";
     
     
     public static final String LEXEME_ADD = "add";
@@ -86,6 +110,17 @@ public class Token {
     public static final String LEXEME_LIST_BY_ALUMNO = "listarporalumno";
     public static final String LEXEME_LIST_BY_SERVICIO = "listarporservicio";
     public static final String LEXEME_STATS = "stats";
+    public static final String LEXEME_MARCAR_REALIZADA = "marcarrealizada";
+    public static final String LEXEME_LIST_POR_ALUMNO_VENTA = "listarporalumnoventa";
+    public static final String LEXEME_LIST_POR_MES = "listarpormes";
+    public static final String LEXEME_LIST_VENCIDAS = "listarvencidas";
+    public static final String LEXEME_LIST_PENDIENTES_VENTA = "listarpendientesventa";
+    public static final String LEXEME_LIST_PAGADAS = "listarpagadas";
+    public static final String LEXEME_MARCAR_PAGADO = "marcarpagado";
+    public static final String LEXEME_MARCAR_VENCIDO = "marcarvencido";
+    public static final String LEXEME_ESTADISTICAS = "estadisticas";
+    public static final String LEXEME_LIST_POR_VENTA = "listarporventa";
+    public static final String LEXEME_REGISTRAR_PAGO = "registrarpago";
 
     public static final String LEXEME_ERROR_COMMAND = "UNKNOWN COMMAND";
     public static final String LEXEME_ERROR_CHARACTER = "UNKNOWN CHARACTER";
@@ -188,6 +223,26 @@ public class Token {
         case SERVICIO:
             return LEXEME_SERVICIO;
             
+        case INFORMECLASE:
+            return LEXEME_INFORMECLASE;   
+            
+        case ASISTENCIA:
+            return LEXEME_ASISTENCIA;
+            
+        case LICENCIA:
+            return LEXEME_LICENCIA;
+            
+        case REPROGRAMACION:
+            return LEXEME_REPROGRAMACION;
+            
+        case VENTA:
+            return LEXEME_VENTA;
+            
+        case PAGO:
+            return LEXEME_PAGO;
+            
+            
+            
          case ADD:
                 return LEXEME_ADD;
          case DELETE:
@@ -198,14 +253,37 @@ public class Token {
                 return LEXEME_GET;
          case VERIFY:
                 return LEXEME_VERIFY;
-            case CANCEL:
+         case CANCEL:
                 return LEXEME_CANCEL;
-            case REPORT:
+         case REPORT:
                 return LEXEME_REPORT;
-            case ACTIVATE:
+         case ACTIVATE:
                 return LEXEME_ACTIVATE;
-            case DEACTIVATE:
+         case DEACTIVATE:
                 return LEXEME_DEACTIVATE;
+                
+         case LIST_POR_ALUMNO_VENTA:
+            return LEXEME_LIST_POR_ALUMNO_VENTA;
+        case LIST_POR_MES:
+            return LEXEME_LIST_POR_MES;
+        case LIST_VENCIDAS:
+            return LEXEME_LIST_VENCIDAS;
+        case LIST_PENDIENTES_VENTA:
+            return LEXEME_LIST_PENDIENTES_VENTA;
+        case LIST_PAGADAS:
+            return LEXEME_LIST_PAGADAS;
+        case MARCAR_PAGADO:
+            return LEXEME_MARCAR_PAGADO;
+        case MARCAR_VENCIDO:
+            return LEXEME_MARCAR_VENCIDO;
+        case ESTADISTICAS:
+            return LEXEME_ESTADISTICAS;
+        case LIST_POR_VENTA:
+            return LEXEME_LIST_POR_VENTA;
+        case REGISTRAR_PAGO:
+            return LEXEME_REGISTRAR_PAGO;
+
+            
                 
             // ACCIONES DE LISTADO
             case LIST_IALUMNO:
@@ -214,7 +292,12 @@ public class Token {
                 return LEXEME_LIST_BY_TUTOR;
             case LIST_ISERVICIO:
                 return LEXEME_LIST_BY_SERVICIO;
+  
+                
+            case MARCAR_REALIZADA:
+                return LEXEME_MARCAR_REALIZADA;
 
+                
            
         case ERROR_COMMAND:
             return LEXEME_ERROR_COMMAND;
@@ -262,6 +345,25 @@ public class Token {
          case LEXEME_SERVICIO:
             return SERVICIO;
             
+         case LEXEME_INFORMECLASE:
+            return INFORMECLASE;    
+            
+         case LEXEME_ASISTENCIA:
+            return ASISTENCIA;
+            
+        case LEXEME_LICENCIA:
+            return LICENCIA;
+            
+        case LEXEME_REPROGRAMACION:
+            return REPROGRAMACION;
+            
+        case LEXEME_VENTA:
+            return VENTA;
+            
+        case LEXEME_PAGO:
+            return PAGO;
+            
+            
             
         case LEXEME_ADD:
             return ADD;
@@ -288,9 +390,34 @@ public class Token {
             return LIST_ITUTOR;
         case LEXEME_LIST_BY_SERVICIO:
             return LIST_ISERVICIO;
+         
+         case LEXEME_MARCAR_REALIZADA:
+            return MARCAR_REALIZADA;
 
         case LEXEME_STATS:
             return STATS;
+            
+            
+        case LEXEME_LIST_POR_ALUMNO_VENTA:
+            return LIST_POR_ALUMNO_VENTA;
+        case LEXEME_LIST_POR_MES:
+            return LIST_POR_MES;
+        case LEXEME_LIST_VENCIDAS:
+            return LIST_VENCIDAS;
+        case LEXEME_LIST_PENDIENTES_VENTA:
+            return LIST_PENDIENTES_VENTA;
+        case LEXEME_LIST_PAGADAS:
+            return LIST_PAGADAS;
+        case LEXEME_MARCAR_PAGADO:
+            return MARCAR_PAGADO;
+        case LEXEME_MARCAR_VENCIDO:
+            return MARCAR_VENCIDO;
+        case LEXEME_ESTADISTICAS:
+            return ESTADISTICAS;
+        case LEXEME_LIST_POR_VENTA:
+            return LIST_POR_VENTA;
+        case LEXEME_REGISTRAR_PAGO:
+            return REGISTRAR_PAGO;
             
         case LEXEME_ERROR_COMMAND:
             return ERROR_COMMAND;
