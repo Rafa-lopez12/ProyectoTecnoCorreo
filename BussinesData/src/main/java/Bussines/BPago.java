@@ -33,8 +33,7 @@ public class BPago {
             ventaId,
             montoPago,
             parametros.get(2),
-            parametros.get(3),
-            registradoPor
+            parametros.get(3)
         );
         
         // Actualizar los montos en la venta

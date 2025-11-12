@@ -1,4 +1,5 @@
 package Data;
+
 import com.mycompany.postgresqlconnection.SqlConnection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,13 +14,13 @@ import java.util.List;
 public class DPago {
     private SqlConnection connection;
     
-    public DPago(){
+    public DPago() {
         connection = new SqlConnection("postgres", "leyendas13", "127.0.0.1", "5432", "prueba_tecno");
     }
     
-    public int guardar(int ventaId, double monto, String metodoPago, String observaciones, Integer registradoPor) throws SQLException{
-        String query = "INSERT INTO pago(venta_id, monto, fecha_pago, metodo_pago, observaciones, registrado_por)" 
-                     + " VALUES(?,?,?,?,?,?) RETURNING id";
+    public int guardar(int ventaId, double monto, String metodoPago, String observaciones) throws SQLException {
+        String query = "INSERT INTO pago(venta_id, monto, fecha_pago, metodo_pago, observaciones) " 
+                     + "VALUES(?,?,?,?,?) RETURNING id";
         PreparedStatement ps = connection.connect().prepareStatement(query);
 
         ps.setInt(1, ventaId);
@@ -27,24 +28,18 @@ public class DPago {
         ps.setTimestamp(3, new Timestamp(System.currentTimeMillis()));
         ps.setString(4, metodoPago);
         ps.setString(5, observaciones);
-        if(registradoPor != null) {
-            ps.setInt(6, registradoPor);
-        } else {
-            ps.setNull(6, java.sql.Types.INTEGER);
-        }
 
         ResultSet rs = ps.executeQuery();
-        if(rs.next()){
+        if (rs.next()) {
             return rs.getInt("id");
         } else {
-            System.err.println("Class DPago.java dice: Ocurrio un error al insertar pago guardar()");
+            System.err.println("Class DPago.java dice: Ocurrió un error al insertar pago guardar()");
             throw new SQLException();
         }
     }
     
-    public void modificar(int id, double monto, String metodoPago, String observaciones) throws SQLException{
-        String query = "UPDATE pago SET monto=?, metodo_pago=?, observaciones=?" 
-                     + " WHERE id=?";
+    public void modificar(int id, double monto, String metodoPago, String observaciones) throws SQLException {
+        String query = "UPDATE pago SET monto=?, metodo_pago=?, observaciones=? WHERE id=?";
         PreparedStatement ps = connection.connect().prepareStatement(query);
         
         ps.setDouble(1, monto);
@@ -52,29 +47,26 @@ public class DPago {
         ps.setString(3, observaciones);
         ps.setInt(4, id);
         
-        if(ps.executeUpdate() == 0){
-            System.err.println("Class DPago.java dice: Ocurrio un error al modificar pago modificar()");
+        if (ps.executeUpdate() == 0) {
+            System.err.println("Class DPago.java dice: Ocurrió un error al modificar pago modificar()");
             throw new SQLException();
         }
     }
     
-    
-    public List<String[]> listar() throws SQLException{
+    public List<String[]> listar() throws SQLException {
         List<String[]> pagos = new ArrayList<>();
         String query = "SELECT p.*, " +
                       "v.alumno_id, " +
-                      "a.nombre || ' ' || a.apellido as alumno_nombre, " +
-                      "v.mes_correspondiente, " +
-                      "COALESCE(prop.nombre || ' ' || prop.apellido, 'Sistema') as registrado_por_nombre " +
+                      "a.nombre || ' ' || a.apellido AS alumno_nombre, " +
+                      "v.mes_correspondiente " +
                       "FROM pago p " +
                       "JOIN venta v ON p.venta_id = v.id " +
                       "JOIN alumno a ON v.alumno_id = a.id " +
-                      "LEFT JOIN propietario prop ON p.registrado_por = prop.id " +
                       "ORDER BY p.fecha_pago DESC";
         PreparedStatement ps = connection.connect().prepareStatement(query);
         ResultSet set = ps.executeQuery();
         
-        while(set.next()){
+        while (set.next()) {
             pagos.add(new String[] {
                 String.valueOf(set.getInt("id")),
                 String.valueOf(set.getInt("venta_id")),
@@ -83,31 +75,28 @@ public class DPago {
                 String.valueOf(set.getDouble("monto")),
                 set.getTimestamp("fecha_pago").toString(),
                 set.getString("metodo_pago"),
-                set.getString("observaciones") != null ? set.getString("observaciones") : "",
-                set.getString("registrado_por_nombre")
+                set.getString("observaciones") != null ? set.getString("observaciones") : ""
             });
         }
         return pagos;
     }
     
-    public String[] ver(int id) throws SQLException{
+    public String[] ver(int id) throws SQLException {
         String[] pago = null;
         String query = "SELECT p.*, " +
                       "v.alumno_id, " +
-                      "a.nombre || ' ' || a.apellido as alumno_nombre, " +
-                      "v.mes_correspondiente, " +
-                      "COALESCE(prop.nombre || ' ' || prop.apellido, 'Sistema') as registrado_por_nombre " +
+                      "a.nombre || ' ' || a.apellido AS alumno_nombre, " +
+                      "v.mes_correspondiente " +
                       "FROM pago p " +
                       "JOIN venta v ON p.venta_id = v.id " +
                       "JOIN alumno a ON v.alumno_id = a.id " +
-                      "LEFT JOIN propietario prop ON p.registrado_por = prop.id " +
                       "WHERE p.id=?";
         PreparedStatement ps = connection.connect().prepareStatement(query);
         ps.setInt(1, id);
         ResultSet set = ps.executeQuery();
         
         if (set.next()) {
-            pago = new String[]{
+            pago = new String[] {
                 String.valueOf(set.getInt("id")),
                 String.valueOf(set.getInt("venta_id")),
                 set.getString("alumno_nombre"),
@@ -115,40 +104,33 @@ public class DPago {
                 String.valueOf(set.getDouble("monto")),
                 set.getTimestamp("fecha_pago").toString(),
                 set.getString("metodo_pago"),
-                set.getString("observaciones") != null ? set.getString("observaciones") : "",
-                set.getString("registrado_por_nombre")
+                set.getString("observaciones") != null ? set.getString("observaciones") : ""
             };
         }
         
         return pago;
     }
     
-    public List<String[]> listarPorVenta(int ventaId) throws SQLException{
+    public List<String[]> listarPorVenta(int ventaId) throws SQLException {
         List<String[]> pagos = new ArrayList<>();
-        String query = "SELECT p.*, " +
-                      "COALESCE(prop.nombre || ' ' || prop.apellido, 'Sistema') as registrado_por_nombre " +
-                      "FROM pago p " +
-                      "LEFT JOIN propietario prop ON p.registrado_por = prop.id " +
-                      "WHERE p.venta_id=? " +
-                      "ORDER BY p.fecha_pago DESC";
+        String query = "SELECT * FROM pago WHERE venta_id=? ORDER BY fecha_pago DESC";
         PreparedStatement ps = connection.connect().prepareStatement(query);
         ps.setInt(1, ventaId);
         ResultSet set = ps.executeQuery();
         
-        while(set.next()){
+        while (set.next()) {
             pagos.add(new String[] {
                 String.valueOf(set.getInt("id")),
                 String.valueOf(set.getDouble("monto")),
                 set.getTimestamp("fecha_pago").toString(),
                 set.getString("metodo_pago"),
-                set.getString("observaciones") != null ? set.getString("observaciones") : "",
-                set.getString("registrado_por_nombre")
+                set.getString("observaciones") != null ? set.getString("observaciones") : ""
             });
         }
         return pagos;
     }
     
-    public List<String[]> listarPorAlumno(int alumnoId) throws SQLException{
+    public List<String[]> listarPorAlumno(int alumnoId) throws SQLException {
         List<String[]> pagos = new ArrayList<>();
         String query = "SELECT p.*, v.mes_correspondiente " +
                       "FROM pago p " +
@@ -159,7 +141,7 @@ public class DPago {
         ps.setInt(1, alumnoId);
         ResultSet set = ps.executeQuery();
         
-        while(set.next()){
+        while (set.next()) {
             pagos.add(new String[] {
                 String.valueOf(set.getInt("id")),
                 String.valueOf(set.getInt("venta_id")),
@@ -172,22 +154,22 @@ public class DPago {
         return pagos;
     }
     
-    public double obtenerTotalPagadoPorVenta(int ventaId) throws SQLException{
+    public double obtenerTotalPagadoPorVenta(int ventaId) throws SQLException {
         double total = 0;
-        String query = "SELECT COALESCE(SUM(monto), 0) as total FROM pago WHERE venta_id=?";
+        String query = "SELECT COALESCE(SUM(monto), 0) AS total FROM pago WHERE venta_id=?";
         PreparedStatement ps = connection.connect().prepareStatement(query);
         ps.setInt(1, ventaId);
         ResultSet set = ps.executeQuery();
         
-        if(set.next()){
+        if (set.next()) {
             total = set.getDouble("total");
         }
         
         return total;
     }
     
-    public void disconnect(){
-        if(connection != null){
+    public void disconnect() {
+        if (connection != null) {
             connection.closeConnection();
         }
     }

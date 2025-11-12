@@ -14,7 +14,10 @@ Bussines\BTutorHorario.class
 Data\DAsistencia.class
 Data\DPropietario.class
 Data\DTutor.class
+Data\DPago.class
 Bussines\Bproducto.class
+Bussines\BPago.class
+Bussines\BVenta.class
 Data\DTutorHorario.class
 Bussines\BLicencia.class
 Data\DServicio.class
@@ -22,6 +25,7 @@ Data\DLicencia.class
 Bussines\BAlumno.class
 Data\DProducto.class
 Data\DHorario.class
+Data\DVenta.class
 Bussines\Bususario.class
 Bussines\BAsistencia.class
 Data\DAlumno.class

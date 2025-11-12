@@ -45,32 +45,7 @@ public class BVenta {
         return ventaId;
     }
     
-    public void modificar(List<String> parametros) throws SQLException{
-        // parametros: [0]id, [1]tipo_venta, [2]monto_total, [3]monto_pagado, 
-        //             [4]mes_correspondiente, [5]fecha_vencimiento, [6]estado
-        
-        double montoTotal = Double.parseDouble(parametros.get(2));
-        double montoPagado = Double.parseDouble(parametros.get(3));
-        double saldoPendiente = montoTotal - montoPagado;
-        
-        dVenta.modificar(
-            Integer.parseInt(parametros.get(0)),
-            parametros.get(1),
-            montoTotal,
-            montoPagado,
-            saldoPendiente,
-            parametros.get(4),
-            parametros.get(5),
-            parametros.get(6)
-        );
-        dVenta.disconnect();
-    }
     
-    public void eliminar(List<String> parametros) throws SQLException{
-        // parametros: [0]id
-        dVenta.eliminar(Integer.parseInt(parametros.get(0)));
-        dVenta.disconnect();
-    }
     
     public ArrayList<String[]> listar() throws SQLException{
         ArrayList<String[]> ventas = (ArrayList<String[]>) dVenta.listar();

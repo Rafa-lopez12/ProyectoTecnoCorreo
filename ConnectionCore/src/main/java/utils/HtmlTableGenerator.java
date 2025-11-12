@@ -995,5 +995,655 @@ public class HtmlTableGenerator {
 
             return html.toString();
         }
+        
+                public static String generateVentaTable(ArrayList<String[]> ventas) {
+            StringBuilder html = new StringBuilder();
+
+            html.append("<!DOCTYPE html>");
+            html.append("<html>");
+            html.append("<head>");
+            html.append("<meta charset='UTF-8'>");
+            html.append("<style>");
+            html.append("body { font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5; }");
+            html.append("h2 { color: #333; }");
+            html.append("table { border-collapse: collapse; width: 100%; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }");
+            html.append("th { background-color: #3F51B5; color: white; padding: 12px; text-align: left; font-size: 11px; }");
+            html.append("td { padding: 8px; border-bottom: 1px solid #ddd; font-size: 11px; }");
+            html.append("tr:hover { background-color: #f5f5f5; }");
+            html.append(".pendiente { color: #FF9800; font-weight: bold; }");
+            html.append(".pagado { color: #4CAF50; font-weight: bold; }");
+            html.append(".vencido { color: #F44336; font-weight: bold; }");
+            html.append(".monto { text-align: right; font-weight: bold; }");
+            html.append(".total { margin-top: 20px; font-weight: bold; color: #3F51B5; }");
+            html.append("</style>");
+            html.append("</head>");
+            html.append("<body>");
+
+            html.append("<h2>💰 Lista de Ventas</h2>");
+
+            if (ventas.isEmpty()) {
+                html.append("<p>No hay ventas registradas.</p>");
+            } else {
+                html.append("<table>");
+                html.append("<tr>");
+                html.append("<th>ID</th>");
+                html.append("<th>Alumno</th>");
+                html.append("<th>Propietario</th>");
+                html.append("<th>Tipo</th>");
+                html.append("<th>Monto Total</th>");
+                html.append("<th>Pagado</th>");
+                html.append("<th>Pendiente</th>");
+                html.append("<th>Mes</th>");
+                html.append("<th>Fecha Venta</th>");
+                html.append("<th>Vencimiento</th>");
+                html.append("<th>Estado</th>");
+                html.append("</tr>");
+
+                for (String[] venta : ventas) {
+                    html.append("<tr>");
+                    html.append("<td>").append(venta[0]).append("</td>");
+                    html.append("<td><strong>").append(venta[2]).append("</strong></td>");
+                    html.append("<td>").append(venta[3]).append("</td>");
+                    html.append("<td>").append(venta[4].toUpperCase()).append("</td>");
+                    html.append("<td class='monto'>$").append(venta[5]).append("</td>");
+                    html.append("<td class='monto'>$").append(venta[6]).append("</td>");
+                    html.append("<td class='monto'>$").append(venta[7]).append("</td>");
+                    html.append("<td>").append(venta[8]).append("</td>");
+                    html.append("<td>").append(venta[9]).append("</td>");
+                    html.append("<td>").append(venta[10]).append("</td>");
+
+                    String estado = venta[11];
+                    String cssClass = "";
+                    if (estado.equals("pendiente")) cssClass = "pendiente";
+                    else if (estado.equals("pagado")) cssClass = "pagado";
+                    else if (estado.equals("vencido")) cssClass = "vencido";
+                    html.append("<td class='").append(cssClass).append("'>").append(estado.toUpperCase()).append("</td>");
+
+                    html.append("</tr>");
+                }
+
+                html.append("</table>");
+                html.append("<p class='total'>Total de ventas: ").append(ventas.size()).append("</p>");
+            }
+
+            html.append("</body>");
+            html.append("</html>");
+
+            return html.toString();
+        }
+
+        public static String generateVentasPorAlumnoTable(ArrayList<String[]> ventas, String nombreAlumno) {
+            StringBuilder html = new StringBuilder();
+
+            html.append("<!DOCTYPE html>");
+            html.append("<html>");
+            html.append("<head>");
+            html.append("<meta charset='UTF-8'>");
+            html.append("<style>");
+            html.append("body { font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5; }");
+            html.append("h2 { color: #333; }");
+            html.append(".subtitle { color: #666; font-size: 16px; margin-bottom: 20px; }");
+            html.append("table { border-collapse: collapse; width: 100%; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }");
+            html.append("th { background-color: #3F51B5; color: white; padding: 12px; text-align: left; }");
+            html.append("td { padding: 10px; border-bottom: 1px solid #ddd; }");
+            html.append("tr:hover { background-color: #f5f5f5; }");
+            html.append(".pendiente { color: #FF9800; font-weight: bold; }");
+            html.append(".pagado { color: #4CAF50; font-weight: bold; }");
+            html.append(".vencido { color: #F44336; font-weight: bold; }");
+            html.append(".monto { text-align: right; font-weight: bold; }");
+            html.append(".total { margin-top: 20px; font-weight: bold; color: #3F51B5; }");
+            html.append("</style>");
+            html.append("</head>");
+            html.append("<body>");
+
+            html.append("<h2>💰 Ventas del Alumno</h2>");
+            html.append("<p class='subtitle'>Alumno: <strong>").append(nombreAlumno).append("</strong></p>");
+
+            if (ventas.isEmpty()) {
+                html.append("<p>Este alumno no tiene ventas registradas.</p>");
+            } else {
+                html.append("<table>");
+                html.append("<tr>");
+                html.append("<th>ID</th>");
+                html.append("<th>Propietario</th>");
+                html.append("<th>Tipo</th>");
+                html.append("<th>Monto Total</th>");
+                html.append("<th>Pagado</th>");
+                html.append("<th>Pendiente</th>");
+                html.append("<th>Mes</th>");
+                html.append("<th>Fecha</th>");
+                html.append("<th>Estado</th>");
+                html.append("</tr>");
+
+                for (String[] venta : ventas) {
+                    html.append("<tr>");
+                    html.append("<td>").append(venta[0]).append("</td>");
+                    html.append("<td>").append(venta[1]).append("</td>");
+                    html.append("<td>").append(venta[2].toUpperCase()).append("</td>");
+                    html.append("<td class='monto'>$").append(venta[3]).append("</td>");
+                    html.append("<td class='monto'>$").append(venta[4]).append("</td>");
+                    html.append("<td class='monto'>$").append(venta[5]).append("</td>");
+                    html.append("<td>").append(venta[6]).append("</td>");
+                    html.append("<td>").append(venta[7]).append("</td>");
+
+                    String estado = venta[8];
+                    String cssClass = "";
+                    if (estado.equals("pendiente")) cssClass = "pendiente";
+                    else if (estado.equals("pagado")) cssClass = "pagado";
+                    else if (estado.equals("vencido")) cssClass = "vencido";
+                    html.append("<td class='").append(cssClass).append("'>").append(estado.toUpperCase()).append("</td>");
+
+                    html.append("</tr>");
+                }
+
+                html.append("</table>");
+                html.append("<p class='total'>Total de ventas: ").append(ventas.size()).append("</p>");
+            }
+
+            html.append("</body>");
+            html.append("</html>");
+
+            return html.toString();
+        }
+
+        public static String generateVentasPorMesTable(ArrayList<String[]> ventas, String mes) {
+            StringBuilder html = new StringBuilder();
+
+            html.append("<!DOCTYPE html>");
+            html.append("<html>");
+            html.append("<head>");
+            html.append("<meta charset='UTF-8'>");
+            html.append("<style>");
+            html.append("body { font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5; }");
+            html.append("h2 { color: #333; }");
+            html.append(".subtitle { color: #666; font-size: 16px; margin-bottom: 20px; }");
+            html.append("table { border-collapse: collapse; width: 100%; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }");
+            html.append("th { background-color: #3F51B5; color: white; padding: 12px; text-align: left; }");
+            html.append("td { padding: 10px; border-bottom: 1px solid #ddd; }");
+            html.append("tr:hover { background-color: #f5f5f5; }");
+            html.append(".pendiente { color: #FF9800; font-weight: bold; }");
+            html.append(".pagado { color: #4CAF50; font-weight: bold; }");
+            html.append(".vencido { color: #F44336; font-weight: bold; }");
+            html.append(".monto { text-align: right; font-weight: bold; }");
+            html.append(".total { margin-top: 20px; font-weight: bold; color: #3F51B5; }");
+            html.append("</style>");
+            html.append("</head>");
+            html.append("<body>");
+
+            html.append("<h2>📅 Ventas del Mes</h2>");
+            html.append("<p class='subtitle'>Mes: <strong>").append(mes).append("</strong></p>");
+
+            if (ventas.isEmpty()) {
+                html.append("<p>No hay ventas para este mes.</p>");
+            } else {
+                html.append("<table>");
+                html.append("<tr>");
+                html.append("<th>ID</th>");
+                html.append("<th>Alumno</th>");
+                html.append("<th>Tipo</th>");
+                html.append("<th>Monto Total</th>");
+                html.append("<th>Pagado</th>");
+                html.append("<th>Pendiente</th>");
+                html.append("<th>Estado</th>");
+                html.append("</tr>");
+
+                for (String[] venta : ventas) {
+                    html.append("<tr>");
+                    html.append("<td>").append(venta[0]).append("</td>");
+                    html.append("<td><strong>").append(venta[1]).append("</strong></td>");
+                    html.append("<td>").append(venta[2].toUpperCase()).append("</td>");
+                    html.append("<td class='monto'>$").append(venta[3]).append("</td>");
+                    html.append("<td class='monto'>$").append(venta[4]).append("</td>");
+                    html.append("<td class='monto'>$").append(venta[5]).append("</td>");
+
+                    String estado = venta[6];
+                    String cssClass = "";
+                    if (estado.equals("pendiente")) cssClass = "pendiente";
+                    else if (estado.equals("pagado")) cssClass = "pagado";
+                    else if (estado.equals("vencido")) cssClass = "vencido";
+                    html.append("<td class='").append(cssClass).append("'>").append(estado.toUpperCase()).append("</td>");
+
+                    html.append("</tr>");
+                }
+
+                html.append("</table>");
+                html.append("<p class='total'>Total de ventas: ").append(ventas.size()).append("</p>");
+            }
+
+            html.append("</body>");
+            html.append("</html>");
+
+            return html.toString();
+        }
+
+        public static String generateVentasVencidasTable(ArrayList<String[]> ventas) {
+            StringBuilder html = new StringBuilder();
+
+            html.append("<!DOCTYPE html>");
+            html.append("<html>");
+            html.append("<head>");
+            html.append("<meta charset='UTF-8'>");
+            html.append("<style>");
+            html.append("body { font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5; }");
+            html.append("h2 { color: #F44336; }");
+            html.append("table { border-collapse: collapse; width: 100%; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }");
+            html.append("th { background-color: #F44336; color: white; padding: 12px; text-align: left; }");
+            html.append("td { padding: 10px; border-bottom: 1px solid #ddd; }");
+            html.append("tr:hover { background-color: #ffebee; }");
+            html.append(".monto { text-align: right; font-weight: bold; color: #F44336; }");
+            html.append(".total { margin-top: 20px; font-weight: bold; color: #F44336; }");
+            html.append(".alerta { background-color: #ffebee; }");
+            html.append("</style>");
+            html.append("</head>");
+            html.append("<body>");
+
+            html.append("<h2>⚠️ Ventas Vencidas</h2>");
+
+            if (ventas.isEmpty()) {
+                html.append("<p style='color: #4CAF50;'>✓ No hay ventas vencidas.</p>");
+            } else {
+                html.append("<table>");
+                html.append("<tr>");
+                html.append("<th>ID</th>");
+                html.append("<th>Alumno</th>");
+                html.append("<th>Teléfono</th>");
+                html.append("<th>Saldo Pendiente</th>");
+                html.append("<th>Mes</th>");
+                html.append("<th>Fecha Vencimiento</th>");
+                html.append("<th>Estado</th>");
+                html.append("</tr>");
+
+                for (String[] venta : ventas) {
+                    html.append("<tr class='alerta'>");
+                    html.append("<td>").append(venta[0]).append("</td>");
+                    html.append("<td><strong>").append(venta[1]).append("</strong></td>");
+                    html.append("<td>").append(venta[2]).append("</td>");
+                    html.append("<td class='monto'>$").append(venta[3]).append("</td>");
+                    html.append("<td>").append(venta[4]).append("</td>");
+                    html.append("<td>").append(venta[5]).append("</td>");
+                    html.append("<td style='color: #F44336; font-weight: bold;'>").append(venta[6].toUpperCase()).append("</td>");
+                    html.append("</tr>");
+                }
+
+                html.append("</table>");
+                html.append("<p class='total'>⚠️ Total de ventas vencidas: ").append(ventas.size()).append("</p>");
+            }
+
+            html.append("</body>");
+            html.append("</html>");
+
+            return html.toString();
+        }
+
+        public static String generateVentasPendientesTable(ArrayList<String[]> ventas) {
+            StringBuilder html = new StringBuilder();
+
+            html.append("<!DOCTYPE html>");
+            html.append("<html>");
+            html.append("<head>");
+            html.append("<meta charset='UTF-8'>");
+            html.append("<style>");
+            html.append("body { font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5; }");
+            html.append("h2 { color: #FF9800; }");
+            html.append("table { border-collapse: collapse; width: 100%; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }");
+            html.append("th { background-color: #FF9800; color: white; padding: 12px; text-align: left; }");
+            html.append("td { padding: 10px; border-bottom: 1px solid #ddd; }");
+            html.append("tr:hover { background-color: #fff3e0; }");
+            html.append(".monto { text-align: right; font-weight: bold; }");
+            html.append(".total { margin-top: 20px; font-weight: bold; color: #FF9800; }");
+            html.append("</style>");
+            html.append("</head>");
+            html.append("<body>");
+
+            html.append("<h2>⏳ Ventas Pendientes</h2>");
+
+            if (ventas.isEmpty()) {
+                html.append("<p style='color: #4CAF50;'>✓ No hay ventas pendientes.</p>");
+            } else {
+                html.append("<table>");
+                html.append("<tr>");
+                html.append("<th>ID</th>");
+                html.append("<th>Alumno</th>");
+                html.append("<th>Tipo</th>");
+                html.append("<th>Monto Total</th>");
+                html.append("<th>Pagado</th>");
+                html.append("<th>Pendiente</th>");
+                html.append("<th>Mes</th>");
+                html.append("<th>Fecha</th>");
+                html.append("<th>Estado</th>");
+                html.append("</tr>");
+
+                for (String[] venta : ventas) {
+                    html.append("<tr>");
+                    html.append("<td>").append(venta[0]).append("</td>");
+                    html.append("<td><strong>").append(venta[1]).append("</strong></td>");
+                    html.append("<td>").append(venta[2].toUpperCase()).append("</td>");
+                    html.append("<td class='monto'>$").append(venta[3]).append("</td>");
+                    html.append("<td class='monto'>$").append(venta[4]).append("</td>");
+                    html.append("<td class='monto' style='color: #FF9800;'>$").append(venta[5]).append("</td>");
+                    html.append("<td>").append(venta[6]).append("</td>");
+                    html.append("<td>").append(venta[7]).append("</td>");
+                    html.append("<td style='color: #FF9800; font-weight: bold;'>").append(venta[8].toUpperCase()).append("</td>");
+                    html.append("</tr>");
+                }
+
+                html.append("</table>");
+                html.append("<p class='total'>Total de ventas pendientes: ").append(ventas.size()).append("</p>");
+            }
+
+            html.append("</body>");
+            html.append("</html>");
+
+            return html.toString();
+        }
+
+        public static String generateVentasPagadasTable(ArrayList<String[]> ventas) {
+            StringBuilder html = new StringBuilder();
+
+            html.append("<!DOCTYPE html>");
+            html.append("<html>");
+            html.append("<head>");
+            html.append("<meta charset='UTF-8'>");
+            html.append("<style>");
+            html.append("body { font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5; }");
+            html.append("h2 { color: #4CAF50; }");
+            html.append("table { border-collapse: collapse; width: 100%; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }");
+            html.append("th { background-color: #4CAF50; color: white; padding: 12px; text-align: left; }");
+            html.append("td { padding: 10px; border-bottom: 1px solid #ddd; }");
+            html.append("tr:hover { background-color: #e8f5e9; }");
+            html.append(".monto { text-align: right; font-weight: bold; }");
+            html.append(".total { margin-top: 20px; font-weight: bold; color: #4CAF50; }");
+            html.append("</style>");
+            html.append("</head>");
+            html.append("<body>");
+
+            html.append("<h2>✅ Ventas Pagadas</h2>");
+
+            if (ventas.isEmpty()) {
+                html.append("<p>No hay ventas pagadas.</p>");
+            } else {
+                html.append("<table>");
+                html.append("<tr>");
+                html.append("<th>ID</th>");
+                html.append("<th>Alumno</th>");
+                html.append("<th>Tipo</th>");
+                html.append("<th>Monto Total</th>");
+                html.append("<th>Mes</th>");
+                html.append("<th>Fecha</th>");
+                html.append("<th>Estado</th>");
+                html.append("</tr>");
+
+                for (String[] venta : ventas) {
+                    html.append("<tr>");
+                    html.append("<td>").append(venta[0]).append("</td>");
+                    html.append("<td><strong>").append(venta[1]).append("</strong></td>");
+                    html.append("<td>").append(venta[2].toUpperCase()).append("</td>");
+                    html.append("<td class='monto'>$").append(venta[3]).append("</td>");
+                    html.append("<td>").append(venta[6]).append("</td>");
+                    html.append("<td>").append(venta[7]).append("</td>");
+                    html.append("<td style='color: #4CAF50; font-weight: bold;'>✓ ").append(venta[8].toUpperCase()).append("</td>");
+                    html.append("</tr>");
+                }
+
+                html.append("</table>");
+                html.append("<p class='total'>Total de ventas pagadas: ").append(ventas.size()).append("</p>");
+            }
+
+            html.append("</body>");
+            html.append("</html>");
+
+            return html.toString();
+        }
+
+        public static String generateEstadisticasVentas(String[] stats) {
+            StringBuilder html = new StringBuilder();
+
+            html.append("<!DOCTYPE html>");
+            html.append("<html>");
+            html.append("<head>");
+            html.append("<meta charset='UTF-8'>");
+            html.append("<style>");
+            html.append("body { font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5; }");
+            html.append("h2 { color: #333; }");
+            html.append(".stats-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 20px; }");
+            html.append(".stat-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }");
+            html.append(".stat-label { color: #666; font-size: 14px; margin-bottom: 5px; }");
+            html.append(".stat-value { color: #333; font-size: 24px; font-weight: bold; }");
+            html.append(".vendido { color: #3F51B5; }");
+            html.append(".pagado { color: #4CAF50; }");
+            html.append(".pendiente { color: #FF9800; }");
+            html.append("</style>");
+            html.append("</head>");
+            html.append("<body>");
+
+            html.append("<h2>📊 Estadísticas de Ventas</h2>");
+
+            html.append("<div class='stats-container'>");
+            
+            html.append("<div class='stat-card'>");
+            html.append("<div class='stat-label'>Total de Ventas</div>");
+            html.append("<div class='stat-value'>").append(stats[0]).append("</div>");
+            html.append("</div>");
+
+            html.append("<div class='stat-card'>");
+            html.append("<div class='stat-label'>Total Vendido</div>");
+            html.append("<div class='stat-value vendido'>$").append(stats[1]).append("</div>");
+            html.append("</div>");
+
+            html.append("<div class='stat-card'>");
+            html.append("<div class='stat-label'>Total Pagado</div>");
+            html.append("<div class='stat-value pagado'>$").append(stats[2]).append("</div>");
+            html.append("</div>");
+
+            html.append("<div class='stat-card'>");
+            html.append("<div class='stat-label'>Total Pendiente</div>");
+            html.append("<div class='stat-value pendiente'>$").append(stats[3]).append("</div>");
+            html.append("</div>");
+
+            html.append("<div class='stat-card'>");
+            html.append("<div class='stat-label'>Ventas Pendientes</div>");
+            html.append("<div class='stat-value pendiente'>").append(stats[4]).append("</div>");
+            html.append("</div>");
+
+            html.append("<div class='stat-card'>");
+            html.append("<div class='stat-label'>Ventas Pagadas</div>");
+            html.append("<div class='stat-value pagado'>").append(stats[5]).append("</div>");
+            html.append("</div>");
+
+            html.append("</div>");
+
+            html.append("</body>");
+            html.append("</html>");
+
+            return html.toString();
+        }
+
+        // ==================== MÉTODOS PARA PAGO ====================
+
+        public static String generatePagoTable(ArrayList<String[]> pagos) {
+            StringBuilder html = new StringBuilder();
+
+            html.append("<!DOCTYPE html>");
+            html.append("<html>");
+            html.append("<head>");
+            html.append("<meta charset='UTF-8'>");
+            html.append("<style>");
+            html.append("body { font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5; }");
+            html.append("h2 { color: #333; }");
+            html.append("table { border-collapse: collapse; width: 100%; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }");
+            html.append("th { background-color: #4CAF50; color: white; padding: 12px; text-align: left; font-size: 11px; }");
+            html.append("td { padding: 8px; border-bottom: 1px solid #ddd; font-size: 11px; }");
+            html.append("tr:hover { background-color: #f5f5f5; }");
+            html.append(".monto { text-align: right; font-weight: bold; color: #4CAF50; }");
+            html.append(".total { margin-top: 20px; font-weight: bold; color: #4CAF50; }");
+            html.append("</style>");
+            html.append("</head>");
+            html.append("<body>");
+
+            html.append("<h2>💵 Lista de Pagos</h2>");
+
+            if (pagos.isEmpty()) {
+                html.append("<p>No hay pagos registrados.</p>");
+            } else {
+                html.append("<table>");
+                html.append("<tr>");
+                html.append("<th>ID</th>");
+                html.append("<th>Venta ID</th>");
+                html.append("<th>Alumno</th>");
+                html.append("<th>Mes</th>");
+                html.append("<th>Monto</th>");
+                html.append("<th>Fecha Pago</th>");
+                html.append("<th>Método</th>");
+                html.append("<th>Observaciones</th>");
+                html.append("</tr>");
+
+                for (String[] pago : pagos) {
+                    html.append("<tr>");
+                    html.append("<td>").append(pago[0]).append("</td>");
+                    html.append("<td>").append(pago[1]).append("</td>");
+                    html.append("<td><strong>").append(pago[2]).append("</strong></td>");
+                    html.append("<td>").append(pago[3]).append("</td>");
+                    html.append("<td class='monto'>$").append(pago[4]).append("</td>");
+                    html.append("<td>").append(pago[5]).append("</td>");
+                    html.append("<td>").append(pago[6]).append("</td>");
+                    html.append("<td>").append(pago[7]).append("</td>");
+                    html.append("</tr>");
+                }
+
+                html.append("</table>");
+                html.append("<p class='total'>Total de pagos: ").append(pagos.size()).append("</p>");
+            }
+
+            html.append("</body>");
+            html.append("</html>");
+
+            return html.toString();
+        }
+
+        public static String generatePagosPorVentaTable(ArrayList<String[]> pagos, int ventaId) {
+            StringBuilder html = new StringBuilder();
+
+            html.append("<!DOCTYPE html>");
+            html.append("<html>");
+            html.append("<head>");
+            html.append("<meta charset='UTF-8'>");
+            html.append("<style>");
+            html.append("body { font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5; }");
+            html.append("h2 { color: #333; }");
+            html.append(".subtitle { color: #666; font-size: 16px; margin-bottom: 20px; }");
+            html.append("table { border-collapse: collapse; width: 100%; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }");
+            html.append("th { background-color: #4CAF50; color: white; padding: 12px; text-align: left; }");
+            html.append("td { padding: 10px; border-bottom: 1px solid #ddd; }");
+            html.append("tr:hover { background-color: #f5f5f5; }");
+            html.append(".monto { text-align: right; font-weight: bold; color: #4CAF50; }");
+            html.append(".total { margin-top: 20px; font-weight: bold; color: #4CAF50; }");
+            html.append("</style>");
+            html.append("</head>");
+            html.append("<body>");
+
+            html.append("<h2>💵 Pagos de la Venta</h2>");
+            html.append("<p class='subtitle'>Venta ID: <strong>#").append(ventaId).append("</strong></p>");
+
+            if (pagos.isEmpty()) {
+                html.append("<p>No hay pagos registrados para esta venta.</p>");
+            } else {
+                double totalPagado = 0;
+                
+                html.append("<table>");
+                html.append("<tr>");
+                html.append("<th>ID</th>");
+                html.append("<th>Monto</th>");
+                html.append("<th>Fecha Pago</th>");
+                html.append("<th>Método</th>");
+                html.append("<th>Observaciones</th>");
+                html.append("<th>Registrado Por</th>");
+                html.append("</tr>");
+
+                for (String[] pago : pagos) {
+                    html.append("<tr>");
+                    html.append("<td>").append(pago[0]).append("</td>");
+                    html.append("<td class='monto'>$").append(pago[1]).append("</td>");
+                    html.append("<td>").append(pago[2]).append("</td>");
+                    html.append("<td>").append(pago[3]).append("</td>");
+                    html.append("<td>").append(pago[4]).append("</td>");
+                    html.append("<td>").append(pago[5]).append("</td>");
+                    html.append("</tr>");
+                    
+                    totalPagado += Double.parseDouble(pago[1]);
+                }
+
+                html.append("</table>");
+                html.append("<p class='total'>Total de pagos: ").append(pagos.size()).append("</p>");
+                html.append("<p class='total'>Monto total pagado: $").append(String.format("%.2f", totalPagado)).append("</p>");
+            }
+
+            html.append("</body>");
+            html.append("</html>");
+
+            return html.toString();
+        }
+
+        public static String generatePagosPorAlumnoTable(ArrayList<String[]> pagos, String nombreAlumno) {
+            StringBuilder html = new StringBuilder();
+
+            html.append("<!DOCTYPE html>");
+            html.append("<html>");
+            html.append("<head>");
+            html.append("<meta charset='UTF-8'>");
+            html.append("<style>");
+            html.append("body { font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5; }");
+            html.append("h2 { color: #333; }");
+            html.append(".subtitle { color: #666; font-size: 16px; margin-bottom: 20px; }");
+            html.append("table { border-collapse: collapse; width: 100%; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }");
+            html.append("th { background-color: #4CAF50; color: white; padding: 12px; text-align: left; }");
+            html.append("td { padding: 10px; border-bottom: 1px solid #ddd; }");
+            html.append("tr:hover { background-color: #f5f5f5; }");
+            html.append(".monto { text-align: right; font-weight: bold; color: #4CAF50; }");
+            html.append(".total { margin-top: 20px; font-weight: bold; color: #4CAF50; }");
+            html.append("</style>");
+            html.append("</head>");
+            html.append("<body>");
+
+            html.append("<h2>💵 Historial de Pagos</h2>");
+            html.append("<p class='subtitle'>Alumno: <strong>").append(nombreAlumno).append("</strong></p>");
+
+            if (pagos.isEmpty()) {
+                html.append("<p>Este alumno no tiene pagos registrados.</p>");
+            } else {
+                double totalPagado = 0;
+                
+                html.append("<table>");
+                html.append("<tr>");
+                html.append("<th>ID</th>");
+                html.append("<th>Venta ID</th>");
+                html.append("<th>Mes</th>");
+                html.append("<th>Monto</th>");
+                html.append("<th>Fecha Pago</th>");
+                html.append("<th>Método</th>");
+                html.append("</tr>");
+
+                for (String[] pago : pagos) {
+                    html.append("<tr>");
+                    html.append("<td>").append(pago[0]).append("</td>");
+                    html.append("<td>#").append(pago[1]).append("</td>");
+                    html.append("<td>").append(pago[2]).append("</td>");
+                    html.append("<td class='monto'>$").append(pago[3]).append("</td>");
+                    html.append("<td>").append(pago[4]).append("</td>");
+                    html.append("<td>").append(pago[5]).append("</td>");
+                    html.append("</tr>");
+                    
+                    totalPagado += Double.parseDouble(pago[3]);
+                }
+
+                html.append("</table>");
+                html.append("<p class='total'>Total de pagos: ").append(pagos.size()).append("</p>");
+                html.append("<p class='total'>Monto total pagado: $").append(String.format("%.2f", totalPagado)).append("</p>");
+            }
+
+            html.append("</body>");
+            html.append("</html>");
+
+            return html.toString();
+        }
 
 }

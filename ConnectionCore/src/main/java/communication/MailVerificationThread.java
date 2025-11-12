@@ -125,7 +125,7 @@ public class MailVerificationThread implements Runnable{
                 inbox = store.getFolder("INBOX");
                 inbox.open(Folder.READ_WRITE);
 
-                // POP3: Obtener TODOS los mensajes (no hay búsqueda por flags)
+                // POP3: Obtener TODOS los mensajes
                 Message[] messages = inbox.getMessages();
 
                 List<Email> emails = new ArrayList<>();
@@ -135,6 +135,13 @@ public class MailVerificationThread implements Runnable{
                     System.out.println("Correos encontrados: " + count);
 
                     for (Message msg : messages) {
+
+                        // ✅ CAMBIO IMPORTANTE: Verificar si ya fue procesado
+                        if (msg.isSet(Flags.Flag.SEEN)) {
+                            System.out.println("⊘ Correo ya procesado, omitiendo...");
+                            continue; // Saltar este correo
+                        }
+
                         Email email = new Email();
 
                         if (msg.getFrom() != null && msg.getFrom().length > 0) {
@@ -148,9 +155,8 @@ public class MailVerificationThread implements Runnable{
 
                         emails.add(email);
 
-                        // IMPORTANTE: Marcar para ELIMINAR después de procesar
-                        msg.setFlag(Flags.Flag.DELETED, true);
-                        System.out.println("✓ Correo procesado y marcado para eliminar");
+                        msg.setFlag(Flags.Flag.SEEN, true);
+                        System.out.println("✓ Correo procesado y marcado como leído");
                     }
 
                     System.out.println("Total procesados: " + emails.size());
@@ -162,13 +168,13 @@ public class MailVerificationThread implements Runnable{
                     System.out.println("No hay correos nuevos...");
                 }
 
-                // Cerrar con 'true' para aplicar los cambios (eliminar mensajes)
-                inbox.close(true);  // ← MUY IMPORTANTE: true para confirmar eliminaciones
+                // ✅ CAMBIO CRÍTICO: false = NO eliminar mensajes del servidor
+                inbox.close(false);
                 store.close();
 
                 System.out.println("***************Conexion Terminada**********************");
 
-                Thread.sleep(10000);  // Aumentado a 10 segundos
+                Thread.sleep(10000);  // Esperar 10 segundos
 
             } catch (Exception ex) {
                 System.err.println("Error en el ciclo de verificación:");
@@ -181,7 +187,7 @@ public class MailVerificationThread implements Runnable{
             } finally {
                 try {
                     if (inbox != null && inbox.isOpen()) {
-                        inbox.close(true);  // true para confirmar eliminaciones
+                        inbox.close(false); // ✅ false = NO eliminar
                     }
                     if (store != null && store.isConnected()) {
                         store.close();
@@ -852,25 +858,6 @@ public class MailVerificationThread implements Runnable{
                     );
                     System.out.println("✓ Venta agregada exitosamente. ID: " + ventaId);
 
-                } else if (event.getAction() == Token.MODIFY) {
-                    bventa.modificar(event.getParams());
-                    
-                    SendEmailThread.sendEmail(
-                        event.getSender(),
-                        "Venta Modificada",
-                        "<html><body><h2>✓ Venta modificada exitosamente</h2></body></html>"
-                    );
-                    System.out.println("✓ Venta modificada");
-
-                } else if (event.getAction() == Token.DELETE) {
-                    bventa.eliminar(event.getParams());
-                    
-                    SendEmailThread.sendEmail(
-                        event.getSender(),
-                        "Venta Eliminada",
-                        "<html><body><h2>✓ Venta eliminada exitosamente</h2></body></html>"
-                    );
-                    System.out.println("✓ Venta eliminada");
 
                 } else if (event.getAction() == Token.GET) {
                     ArrayList<String[]> ventas = bventa.listar();
@@ -1043,16 +1030,6 @@ public class MailVerificationThread implements Runnable{
                     );
                     System.out.println("✓ Pago modificado");
 
-                } else if (event.getAction() == Token.DELETE) {
-                    bpago.eliminar(event.getParams());
-                    
-                    SendEmailThread.sendEmail(
-                        event.getSender(),
-                        "Pago Eliminado",
-                        "<html><body><h2>✓ Pago eliminado exitosamente</h2>" +
-                        "<p>La venta asociada se ha recalculado automáticamente.</p></body></html>"
-                    );
-                    System.out.println("✓ Pago eliminado");
 
                 } else if (event.getAction() == Token.GET) {
                     ArrayList<String[]> pagos = bpago.listar();
