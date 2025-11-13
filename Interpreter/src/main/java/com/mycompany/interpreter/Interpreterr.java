@@ -147,6 +147,11 @@ public class Interpreterr {
             public void pago(TokenEvent tokenEvent) {
                 throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
             }
+
+            @Override
+            public void reporte(TokenEvent tokenEvent) {
+                throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+            }
             
         });
         

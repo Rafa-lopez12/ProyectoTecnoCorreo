@@ -5,6 +5,7 @@ com\mycompany\bussinesdata\BussinesData.class
 Bussines\BHorario.class
 Data\DInformeclase.class
 Bussines\BInscripcion.class
+Data\DReporte.class
 Bussines\BPropietario.class
 Data\DReprogramacion.class
 Data\DInscripcion.class
@@ -17,6 +18,7 @@ Data\DTutor.class
 Data\DPago.class
 Bussines\Bproducto.class
 Bussines\BPago.class
+Bussines\BReporte.class
 Bussines\BVenta.class
 Data\DTutorHorario.class
 Bussines\BLicencia.class

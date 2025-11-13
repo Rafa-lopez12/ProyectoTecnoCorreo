@@ -1,13 +1,15 @@
 package communication;
 
-import jakarta.mail.*;
-import jakarta.mail.internet.*;
+import javax.mail.*;
+import javax.mail.internet.*;
 import java.util.Properties;
 
 public class SendEmailThread implements Runnable {
-    private static final String HOST = "smtp.gmail.com";
-    private static final String USER = "rafa.123asdlopez@gmail.com";
-    private static final String PASSWORD = "mcewvaahflvqhafw"; // Tu contraseña de aplicación
+    
+    private final static String PROTOCOL = "smtp";
+    private final String mail = "grupo16sa@tecnoweb.org.bo";
+    private final String username = "grupo16sa";
+    private final String password = "grup016grup016*";
     
     private String to;
     private String subject;
@@ -21,31 +23,35 @@ public class SendEmailThread implements Runnable {
     
     @Override
     public void run() {
+        Properties props = new Properties();
+        props.put("mail.transport.protocol", PROTOCOL);
+        
+        props.setProperty("mail.smtp.auth", "false");
+        props.setProperty("mail.smtp.tls.enable", "true");
+        props.setProperty("mail.smtp.host", "mail.tecnoweb.org.bo");
+        props.setProperty("mail.smtp.port", "25");
+
+        Session session = Session.getInstance(props,
+                new javax.mail.Authenticator() {
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication(username, password);
+                    }
+                });
+
         try {
-            Properties properties = new Properties();
-            properties.put("mail.smtp.host", HOST);
-            properties.put("mail.smtp.port", "587");
-            properties.put("mail.smtp.auth", "true");
-            properties.put("mail.smtp.starttls.enable", "true");
-            
-            Session session = Session.getInstance(properties, new Authenticator() {
-                @Override
-                protected PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(USER, PASSWORD);
-                }
-            });
-            
             Message message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(USER));
+            message.setFrom(new InternetAddress(mail));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
             message.setSubject(subject);
             
-            // Enviar como HTML
+            // Para HTML
             message.setContent(htmlBody, "text/html; charset=utf-8");
-            
+            // O para texto plano: message.setText(htmlBody);
+
             Transport.send(message);
-            System.out.println("✓ Correo enviado exitosamente a: " + to);
-            
+
+            System.out.println("✓ Correo enviado correctamente a: " + to);
+
         } catch (MessagingException e) {
             System.err.println("✗ Error al enviar correo: " + e.getMessage());
             e.printStackTrace();

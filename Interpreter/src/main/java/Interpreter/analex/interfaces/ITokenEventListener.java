@@ -25,4 +25,5 @@ public interface ITokenEventListener {
     void reprogramacion(TokenEvent tokenEvent);
     void venta(TokenEvent tokenEvent);
     void pago(TokenEvent tokenEvent);
+    void reporte(TokenEvent tokenEvent);
 }

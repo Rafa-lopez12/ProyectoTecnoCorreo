@@ -5,6 +5,7 @@ Interfaces\IEmailEventListener.class
 utils\Command.class
 communication\MailVerificationThread.class
 utils\HtmlTableGenerator.class
+utils\ChartGenerator.class
 utils\Extractor.class
 com\mycompany\connectioncore\ConnectionCore$1.class
 communication\MailVerificationThread$1.class

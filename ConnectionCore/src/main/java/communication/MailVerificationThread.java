@@ -11,6 +11,7 @@ import Bussines.BInforme_clase;
 import Bussines.BInscripcion;
 import Bussines.BLicencia;
 import Bussines.BPago;
+import Bussines.BReporte;
 import Bussines.BReprogramacion;
 import Bussines.BServicio;
 import Bussines.BTutor;
@@ -36,13 +37,19 @@ import javax.security.sasl.AuthenticationException;
 import utils.Command;
 import utils.Email;
 import utils.Extractor;
-import jakarta.mail.*;
-import jakarta.mail.internet.MimeMessage;
-import jakarta.mail.search.FlagTerm;
-import jakarta.mail.search.SearchTerm;
+//import jakarta.mail.*;
+//import jakarta.mail.internet.MimeMessage;
+//import jakarta.mail.search.FlagTerm;
+//import jakarta.mail.search.SearchTerm;
+import javax.mail.*;
+import javax.mail.internet.MimeMessage;
+import javax.mail.search.FlagTerm;
+import javax.mail.search.SearchTerm;
 import java.sql.SQLException;
+import java.util.Map;
 import java.util.Properties;
 import utils.HtmlTableGenerator;
+import utils.ChartGenerator;
 
 /**
  *
@@ -68,7 +75,7 @@ public class MailVerificationThread implements Runnable{
     private BReprogramacion breprogramacion;
     private BVenta bventa;
     private BPago bpago;
-    
+    private BReporte breporte;
     private Socket socket;
     private BufferedReader input;
     private DataOutputStream output;
@@ -98,6 +105,7 @@ public class MailVerificationThread implements Runnable{
         breprogramacion = new BReprogramacion();
         bventa = new BVenta();
         bpago = new BPago();
+        breporte= new BReporte();
       
     }
 
@@ -136,12 +144,6 @@ public class MailVerificationThread implements Runnable{
 
                     for (Message msg : messages) {
 
-                        // ✅ CAMBIO IMPORTANTE: Verificar si ya fue procesado
-                        if (msg.isSet(Flags.Flag.SEEN)) {
-                            System.out.println("⊘ Correo ya procesado, omitiendo...");
-                            continue; // Saltar este correo
-                        }
-
                         Email email = new Email();
 
                         if (msg.getFrom() != null && msg.getFrom().length > 0) {
@@ -155,8 +157,9 @@ public class MailVerificationThread implements Runnable{
 
                         emails.add(email);
 
-                        msg.setFlag(Flags.Flag.SEEN, true);
-                        System.out.println("✓ Correo procesado y marcado como leído");
+                        // ✅ MARCAR PARA ELIMINAR después de procesar exitosamente
+                        msg.setFlag(Flags.Flag.DELETED, true);
+                        System.out.println("✓ Correo procesado y marcado para eliminación");
                     }
 
                     System.out.println("Total procesados: " + emails.size());
@@ -168,8 +171,8 @@ public class MailVerificationThread implements Runnable{
                     System.out.println("No hay correos nuevos...");
                 }
 
-                // ✅ CAMBIO CRÍTICO: false = NO eliminar mensajes del servidor
-                inbox.close(false);
+                // ✅ CRÍTICO: true = SÍ eliminar mensajes marcados como DELETED del servidor
+                inbox.close(true);
                 store.close();
 
                 System.out.println("***************Conexion Terminada**********************");
@@ -187,7 +190,7 @@ public class MailVerificationThread implements Runnable{
             } finally {
                 try {
                     if (inbox != null && inbox.isOpen()) {
-                        inbox.close(false); // ✅ false = NO eliminar
+                        inbox.close(true); // ✅ true = SÍ eliminar mensajes marcados
                     }
                     if (store != null && store.isConnected()) {
                         store.close();
@@ -1104,6 +1107,132 @@ public class MailVerificationThread implements Runnable{
                 );
             }
         }
+        
+        @Override
+        public void reporte(TokenEvent event) {
+            try {
+                System.out.println("=== COMANDO REPORTE ===");
+                System.out.println(event);
+
+                String htmlChart = "";
+                String subject = "";
+               
+                if (event.getAction() == Token.REPORTE_ASISTENCIA) {
+                    // Reporte de Asistencias
+                    Map<String, Integer> datos = breporte.obtenerEstadisticasAsistencia();
+                    htmlChart = ChartGenerator.generatePieChart(
+                        datos,
+                        "📊 Estadísticas de Asistencia",
+                        "chartAsistencia"
+                    );
+                    subject = "Reporte de Asistencias";
+                    System.out.println("✓ Reporte de asistencias generado");
+
+                } else if (event.getAction() == Token.REPORTE_INSCRIPCIONES) {
+                    // Reporte de Inscripciones por Mes
+                    Map<String, Integer> datos = breporte.obtenerInscripcionesPorMes();
+                    htmlChart = ChartGenerator.generatePieChart(
+                        datos,
+                        "📅 Inscripciones por Mes (Últimos 12 meses)",
+                        "chartInscripciones"
+                    );
+                    subject = "Reporte de Inscripciones por Mes";
+                    System.out.println("✓ Reporte de inscripciones generado");
+
+                } else if (event.getAction() == Token.REPORTE_SERVICIOS) {
+                    // Reporte de Alumnos por Servicio
+                    Map<String, Integer> datos = breporte.obtenerAlumnosPorServicio();
+                    htmlChart = ChartGenerator.generatePieChart(
+                        datos,
+                        "👥 Alumnos Activos por Servicio",
+                        "chartServicios"
+                    );
+                    subject = "Reporte de Alumnos por Servicio";
+                    System.out.println("✓ Reporte de servicios generado");
+
+                } else if (event.getAction() == Token.REPORTE_VENTAS) {
+                    // Reporte de Ventas por Estado
+                    Map<String, Double> datos = breporte.obtenerVentasPorEstado();
+                    htmlChart = ChartGenerator.generatePieChart(
+                        datos,
+                        "💰 Ventas por Estado",
+                        "chartVentas"
+                    );
+                    subject = "Reporte de Ventas por Estado";
+                    System.out.println("✓ Reporte de ventas generado");
+
+                } else if (event.getAction() == Token.REPORTE_LICENCIAS) {
+                    // Reporte de Licencias por Estado
+                    Map<String, Integer> datos = breporte.obtenerLicenciasPorEstado();
+                    htmlChart = ChartGenerator.generatePieChart(
+                        datos,
+                        "📋 Licencias por Estado",
+                        "chartLicencias"
+                    );
+                    subject = "Reporte de Licencias por Estado";
+                    System.out.println("✓ Reporte de licencias generado");
+
+                } else if (event.getAction() == Token.REPORTE_PAGOS) {
+                    // Reporte de Pagos por Mes
+                    Map<String, Double> datos = breporte.obtenerPagosPorMes();
+                    htmlChart = ChartGenerator.generatePieChart(
+                        datos,
+                        "💵 Pagos Totales por Mes (Últimos 12 meses)",
+                        "chartPagos"
+                    );
+                    subject = "Reporte de Pagos por Mes";
+                    System.out.println("✓ Reporte de pagos generado");
+
+                } else {
+                    System.err.println("✗ Acción de reporte no válida");
+                    SendEmailThread.sendEmail(
+                        event.getSender(),
+                        "Error en Comando de Reporte",
+                        "<html><body><h2>✗ Error</h2>" +
+                        "<p>Acción no válida para reporte</p>" +
+                        "<p>Reportes disponibles:</p>" +
+                        "<ul>" +
+                        "<li>reporte asistencias</li>" +
+                        "<li>reporte inscripciones</li>" +
+                        "<li>reporte servicios</li>" +
+                        "<li>reporte ventas</li>" +
+                        "<li>reporte licencias</li>" +
+                        "<li>reporte pagospormes</li>" +
+                        "</ul>" +
+                        "</body></html>"
+                    );
+                    return;
+                }
+
+                // Enviar el reporte por correo
+                SendEmailThread.sendEmail(
+                    event.getSender(),
+                    subject,
+                    htmlChart
+                );
+
+            } catch (SQLException e) {
+                System.err.println("✗ Error al generar reporte: " + e.getMessage());
+                e.printStackTrace();
+
+                SendEmailThread.sendEmail(
+                    event.getSender(),
+                    "Error al Generar Reporte",
+                    "<html><body><h2>✗ Error en Base de Datos</h2>" +
+                    "<p>" + e.getMessage() + "</p></body></html>"
+                );
+            } catch (Exception e) {
+                System.err.println("✗ Error inesperado: " + e.getMessage());
+                e.printStackTrace();
+
+                SendEmailThread.sendEmail(
+                    event.getSender(),
+                    "Error al Generar Reporte",
+                    "<html><body><h2>✗ Error</h2>" +
+                    "<p>" + e.getMessage() + "</p></body></html>"
+                );
+            }
+        }
 
 
        @Override
@@ -1113,6 +1242,8 @@ public class MailVerificationThread implements Runnable{
        System.err.println("Formato esperado: usuario <accion> <param1, param2, ...>");
        
         }
+
+            
 
             
 

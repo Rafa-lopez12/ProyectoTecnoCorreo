@@ -32,6 +32,7 @@ public class Token {
     public static final int REPROGRAMACION = 110;
     public static final int VENTA = 111;
     public static final int PAGO = 112;
+    public static final int REPORTE = 113;
 //    public static final int CLIENT = 101;
 //    public static final int DPTO = 102;
  //   public static final int SOCIAL = 103;
@@ -70,7 +71,12 @@ public class Token {
     public static final int ESTADISTICAS = 231;
     public static final int LIST_POR_VENTA = 232;
     public static final int REGISTRAR_PAGO = 233;
-    
+    public static final int REPORTE_ASISTENCIA = 234;
+    public static final int REPORTE_INSCRIPCIONES = 235;
+    public static final int REPORTE_SERVICIOS = 236;
+    public static final int REPORTE_VENTAS = 237;
+    public static final int REPORTE_LICENCIAS = 239;
+    public static final int REPORTE_PAGOS = 240;
     
     public static final int ERROR_COMMAND = 300;
     public static final int ERROR_CHARACTER = 301;
@@ -95,6 +101,7 @@ public class Token {
     public static final String LEXEME_REPROGRAMACION = "reprogramacion";
     public static final String LEXEME_VENTA = "venta";
     public static final String LEXEME_PAGO = "pago";
+    public static final String LEXEME_REPORTE = "reporte";
     
     
     public static final String LEXEME_ADD = "add";
@@ -121,6 +128,15 @@ public class Token {
     public static final String LEXEME_ESTADISTICAS = "estadisticas";
     public static final String LEXEME_LIST_POR_VENTA = "listarporventa";
     public static final String LEXEME_REGISTRAR_PAGO = "registrarpago";
+    public static final String LEXEME_REPORTE_ASISTENCIA = "asistencias";
+    public static final String LEXEME_REPORTE_INSCRIPCIONES = "inscripciones";
+    public static final String LEXEME_REPORTE_SERVICIOS = "servicios";
+    public static final String LEXEME_REPORTE_VENTAS = "ventas";
+    public static final String LEXEME_REPORTE_LICENCIAS = "licencias";
+    public static final String LEXEME_REPORTE_PAGOS = "pagos";
+    
+   
+    
 
     public static final String LEXEME_ERROR_COMMAND = "UNKNOWN COMMAND";
     public static final String LEXEME_ERROR_CHARACTER = "UNKNOWN CHARACTER";
@@ -240,6 +256,8 @@ public class Token {
             
         case PAGO:
             return LEXEME_PAGO;
+        case REPORTE:
+            return LEXEME_REPORTE;
             
             
             
@@ -282,6 +300,19 @@ public class Token {
             return LEXEME_LIST_POR_VENTA;
         case REGISTRAR_PAGO:
             return LEXEME_REGISTRAR_PAGO;
+        case REPORTE_ASISTENCIA:
+            return LEXEME_REPORTE_ASISTENCIA;
+        case REPORTE_INSCRIPCIONES:
+            return LEXEME_REPORTE_INSCRIPCIONES;
+        case REPORTE_SERVICIOS:
+            return LEXEME_REPORTE_SERVICIOS;
+        case REPORTE_VENTAS:
+            return LEXEME_REPORTE_VENTAS;
+        case REPORTE_LICENCIAS:
+            return LEXEME_REPORTE_LICENCIAS;
+        case REPORTE_PAGOS:
+            return LEXEME_REPORTE_PAGOS;   
+
 
             
                 
@@ -363,6 +394,9 @@ public class Token {
         case LEXEME_PAGO:
             return PAGO;
             
+        case LEXEME_REPORTE:
+            return REPORTE;
+            
             
             
         case LEXEME_ADD:
@@ -418,6 +452,19 @@ public class Token {
             return LIST_POR_VENTA;
         case LEXEME_REGISTRAR_PAGO:
             return REGISTRAR_PAGO;
+            
+        case LEXEME_REPORTE_ASISTENCIA:
+            return REPORTE_ASISTENCIA;
+        case LEXEME_REPORTE_INSCRIPCIONES:
+            return REPORTE_INSCRIPCIONES;
+        case LEXEME_REPORTE_SERVICIOS:
+            return REPORTE_SERVICIOS;
+        case LEXEME_REPORTE_VENTAS:
+            return REPORTE_VENTAS;
+        case LEXEME_REPORTE_LICENCIAS:
+            return REPORTE_LICENCIAS;
+        case LEXEME_REPORTE_PAGOS:
+            return REPORTE_PAGOS;
             
         case LEXEME_ERROR_COMMAND:
             return ERROR_COMMAND;
