@@ -17,37 +17,32 @@ public class BAlumno {
         dUsuario = new DUsuario();
     }
     
-    public void guardar(List<String> parametros) throws SQLException{
-        // parametros: [0]nombre, [1]apellido, [2]email, [3]telefono, [4]fecha_nacimiento, 
-        //             [5]direccion, [6]estado, [7]codigo, [8]grado_escolar, [9]fecha_ingreso
-        
+public void guardar(List<String> parametros) throws SQLException{
+    try {
         // Primero crear el usuario
         int userId = dUsuario.guardar(
             parametros.get(0),  // nombre
             parametros.get(1),  // apellido
-            parametros.get(2),  // email
-            parametros.get(3),  // telefono
-            parametros.get(4),  // fecha_nacimiento
-            parametros.get(5),  // direccion
-            parametros.get(6)   // estado
+            parametros.get(2),  // telefono
+            parametros.get(3),  // fecha_nacimiento
+            parametros.get(4),  // direccion
+            parametros.get(5)   // estado
         );
-        dUsuario.disconnect();
-        
-        // Verificar que el código no exista
-        if(dAlumno.existeCodigo(parametros.get(7))){
-            dAlumno.disconnect();
-            throw new SQLException("El código de alumno ya existe: " + parametros.get(7));
-        }
         
         // Luego crear el alumno con el user_id
         dAlumno.guardar(
-            userId,              // user_id
+            userId,
+            parametros.get(6),   // ci
             parametros.get(7),   // codigo
             parametros.get(8),   // grado_escolar
             parametros.get(9)    // fecha_ingreso
         );
+    } finally {
+        // Desconectar solo al final
+        dUsuario.disconnect();
         dAlumno.disconnect();
     }
+}
     
     public void modificar(List<String> parametros) throws SQLException{
         // parametros: [0]id, [1]nombre, [2]apellido, [3]email, [4]telefono, [5]fecha_nacimiento, 

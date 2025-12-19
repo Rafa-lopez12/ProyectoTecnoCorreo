@@ -17,18 +17,17 @@ public class DUsuario {
         connection = new SqlConnection("grupo16sa", "grup016grup016*", "mail.tecnoweb.org.bo", "5432", "db_grupo16sa");
     }
     
-    public int guardar(String nombre, String apellido, String email, String telefono, String fechaNacimiento, String direccion, String estado) throws SQLException{
-        String query = "INSERT INTO usuario(nombre, apellido, email, telefono, fecha_nacimiento, direccion, estado)" 
-                     + " VALUES(?,?,?,?,?,?,?) RETURNING id";
+    public int guardar(String nombre, String apellido, String telefono, String fechaNacimiento, String direccion, String estado) throws SQLException{
+        String query = "INSERT INTO usuario(nombre, apellido, telefono, fecha_nacimiento, direccion, estado)" 
+                     + " VALUES(?,?,?,?,?,?) RETURNING id";
         PreparedStatement ps = connection.connect().prepareStatement(query);
 
         ps.setString(1, nombre);
         ps.setString(2, apellido);
-        ps.setString(3, email);
-        ps.setString(4, telefono);
-        ps.setDate(5, fechaNacimiento != null ? Date.valueOf(fechaNacimiento) : null);
-        ps.setString(6, direccion);
-        ps.setString(7, estado != null ? estado : "activo");
+        ps.setString(3, telefono);
+        ps.setDate(4, fechaNacimiento != null ? Date.valueOf(fechaNacimiento) : null);
+        ps.setString(5, direccion);
+        ps.setString(6, estado != null ? estado : "activo");
 
         ResultSet rs = ps.executeQuery();
         if(rs.next()){

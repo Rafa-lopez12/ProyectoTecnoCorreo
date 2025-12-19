@@ -25,7 +25,6 @@ public class BPropietario {
         int userId = dUsuario.guardar(
             parametros.get(0),   // nombre
             parametros.get(1),   // apellido
-            null,                // email (null porque va en propietario)
             parametros.get(2),   // telefono
             parametros.get(3),   // fecha_nacimiento
             parametros.get(4),   // direccion

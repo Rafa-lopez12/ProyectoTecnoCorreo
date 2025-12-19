@@ -144,4 +144,46 @@ public class DHorario {
             connection.closeConnection();
         }
     }
+    
+    public ArrayList<String[]> listarDisponibles() throws SQLException {
+        ArrayList<String[]> horariosDisponibles = new ArrayList<>();
+
+        String query = "SELECT DISTINCT h.id, h.dia_semana, h.hora_inicio, h.hora_fin, " +
+                       "CONCAT(u.nombre, ' ', u.apellido) as tutor_nombre " +
+                       "FROM horario h " +
+                       "JOIN tutor_horario th ON h.id = th.horario_id " +
+                       "JOIN tutor t ON th.tutor_id = t.id " +
+                       "JOIN usuario u ON t.user_id = u.id " +
+                       "WHERE h.estado = 'activo' " +
+                       "AND NOT EXISTS ( " +
+                       "  SELECT 1 FROM inscripcion i " +
+                       "  WHERE i.tutor_id = t.id " +
+                       "  AND i.estado = 'activo' " +
+                       "  AND i.horarios::jsonb @> jsonb_build_array(jsonb_build_object(" +
+                       "    'dia', h.dia_semana, " +
+                       "    'hora_inicio', TO_CHAR(h.hora_inicio, 'HH24:MI'), " +
+                       "    'hora_fin', TO_CHAR(h.hora_fin, 'HH24:MI')" +
+                       "  )) " +
+                       ") " +
+                       "ORDER BY h.dia_semana, h.hora_inicio";
+
+        PreparedStatement ps = connection.connect().prepareStatement(query);
+        ResultSet rs = ps.executeQuery();
+
+        while(rs.next()) {
+            String[] horario = new String[5];
+            horario[0] = String.valueOf(rs.getInt("id"));
+            horario[1] = rs.getString("dia_semana");
+            horario[2] = rs.getString("hora_inicio");
+            horario[3] = rs.getString("hora_fin");
+            horario[4] = rs.getString("tutor_nombre");
+            horariosDisponibles.add(horario);
+        }
+
+        rs.close();
+        ps.close();
+
+        return horariosDisponibles;
+    }
+    
 }

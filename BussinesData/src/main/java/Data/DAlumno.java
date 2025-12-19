@@ -18,16 +18,15 @@ public class DAlumno {
     }
     
     // Ahora requiere user_id y código
-    public void guardar(int userId, String codigo, String gradoEscolar, String fechaIngreso) throws SQLException{
-        String query = "INSERT INTO alumno(user_id, codigo, grado_escolar, fecha_ingreso)" 
-                     + " VALUES(?,?,?,?)";
+    public void guardar(int userId, String ci, String codigo, String gradoEscolar, String fechaIngreso) throws SQLException{
+        String query = "INSERT INTO alumno(user_id, ci, codigo, grado_escolar, fecha_ingreso)" 
+                     + " VALUES(?,?,?,?,?)";
         PreparedStatement ps = connection.connect().prepareStatement(query);
-
         ps.setInt(1, userId);
-        ps.setString(2, codigo);
-        ps.setString(3, gradoEscolar);
-        ps.setDate(4, Date.valueOf(fechaIngreso));
-
+        ps.setString(2, ci);           // ← NUEVO
+        ps.setString(3, codigo);
+        ps.setString(4, gradoEscolar);
+        ps.setDate(5, Date.valueOf(fechaIngreso));
         if(ps.executeUpdate() == 0){
             System.err.println("Class DAlumno.java dice: Ocurrio un error al insertar un alumno guardar()");
             throw new SQLException();

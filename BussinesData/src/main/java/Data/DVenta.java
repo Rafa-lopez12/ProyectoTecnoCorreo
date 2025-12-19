@@ -6,6 +6,8 @@ import java.sql.SQLException;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.*;
+import java.time.LocalDate;
 
 /**
  * @author Rafa
@@ -23,12 +25,16 @@ public class DVenta {
                        double montoTotal, double montoPagado, double saldoPendiente, 
                        String mesCorrespondiente, String fechaVenta, String fechaVencimiento, 
                        String estado) throws SQLException{
+        
+        Connection conn = connection.connect();
+        
+        // 1. Insertar la venta
         String query = "INSERT INTO venta(inscripcion_id, propietario_id, tipo_venta, cuotas, monto_total, " +
                       "monto_pagado, saldo_pendiente, mes_correspondiente, fecha_venta, fecha_vencimiento, estado)" 
                      + " VALUES(?,?,?,?,?,?,?,?,?,?,?) RETURNING id";
-        PreparedStatement ps = connection.connect().prepareStatement(query);
-
-        ps.setInt(1, inscripcionId);  // CAMBIO: inscripcion_id en lugar de alumno_id
+        
+        PreparedStatement ps = conn.prepareStatement(query);
+        ps.setInt(1, inscripcionId);
         if(propietarioId != null) {
             ps.setInt(2, propietarioId);
         } else {
@@ -36,7 +42,7 @@ public class DVenta {
         }
         ps.setString(3, tipoVenta);
         if(cuotas != null) {
-            ps.setInt(4, cuotas);  // NUEVO: campo cuotas
+            ps.setInt(4, cuotas);
         } else {
             ps.setNull(4, java.sql.Types.INTEGER);
         }
@@ -47,15 +53,56 @@ public class DVenta {
         ps.setDate(9, fechaVenta != null ? Date.valueOf(fechaVenta) : new Date(System.currentTimeMillis()));
         ps.setDate(10, fechaVencimiento != null ? Date.valueOf(fechaVencimiento) : null);
         ps.setString(11, estado != null ? estado : "pendiente");
-
+        
         ResultSet rs = ps.executeQuery();
+        int ventaId = 0;
+        
         if(rs.next()){
-            return rs.getInt("id");
+            ventaId = rs.getInt("id");
         } else {
             System.err.println("Class DVenta.java dice: Ocurrio un error al insertar venta guardar()");
             throw new SQLException();
         }
+        
+        rs.close();
+        ps.close();
+        
+        // 2. Si es crédito, generar las cuotas automáticamente
+        if("credito".equalsIgnoreCase(tipoVenta) && cuotas != null && cuotas > 0) {
+            generarCuotas(conn, ventaId, cuotas, montoTotal, fechaVenta);
+            System.out.println("✓ Venta #" + ventaId + " creada con " + cuotas + " cuotas generadas automáticamente");
+        } else {
+            System.out.println("✓ Venta #" + ventaId + " creada (contado)");
+        }
+        
+        return ventaId;
     }
+    
+        private void generarCuotas(Connection conn, int ventaId, int numCuotas, double montoTotal, String fechaVenta) throws SQLException {
+            double montoPorCuota = Math.round((montoTotal / numCuotas) * 100.0) / 100.0; // Redondeo a 2 decimales
+
+            LocalDate fechaBase = fechaVenta != null ? LocalDate.parse(fechaVenta) : LocalDate.now();
+
+            String sqlPago = "INSERT INTO pago (venta_id, monto, metodo_pago, fecha_pago, observaciones, estado, fecha_vencimiento) " +
+                            "VALUES (?, ?, 'pendiente', NULL, ?, 'pendiente', ?)";
+
+            PreparedStatement psPago = conn.prepareStatement(sqlPago);
+
+            for (int i = 1; i <= numCuotas; i++) {
+                // Calcular fecha de vencimiento: +1 mes, +2 meses, etc.
+                LocalDate fechaVenc = fechaBase.plusMonths(i);
+
+                psPago.setInt(1, ventaId);
+                psPago.setDouble(2, montoPorCuota);
+                psPago.setString(3, "Cuota " + i + " de " + numCuotas);
+                psPago.setDate(4, Date.valueOf(fechaVenc));
+
+                psPago.executeUpdate();
+            }
+
+            psPago.close();
+        }
+    
     
     public List<String[]> listar() throws SQLException{
         List<String[]> ventas = new ArrayList<>();

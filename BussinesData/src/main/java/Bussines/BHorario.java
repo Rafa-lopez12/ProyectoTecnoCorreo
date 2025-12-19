@@ -67,4 +67,8 @@ public class BHorario {
         dHorario.disconnect();
         return horarios;
     }
+    
+    public ArrayList<String[]> listarDisponibles() throws SQLException {
+        return dHorario.listarDisponibles();
+    }
 }

@@ -20,11 +20,10 @@ public class Bususario {
         int userId = dUsuario.guardar(
             parametros.get(0), 
             parametros.get(1), 
-            parametros.get(2), 
-            parametros.get(3),
+            parametros.get(2),
+            parametros.get(3), 
             parametros.get(4), 
-            parametros.get(5), 
-            parametros.get(6)
+            parametros.get(5)
         );
         dUsuario.disconnect();
         return userId;
