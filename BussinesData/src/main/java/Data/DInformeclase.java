@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 
 /**
  * @author Rafa
+ * CAMBIO IMPORTANTE: Ahora informe_clase se relaciona con asistencia_id en lugar de inscripcion_id
  */
 public class DInformeclase {
     private SqlConnection connection;
@@ -18,18 +19,18 @@ public class DInformeclase {
         connection = new SqlConnection("postgres", "leyendas13", "127.0.0.1", "5432", "prueba_tecno");
     }
     
-    public int guardar(int inscripcionId, String fecha, String temasVistos, String tareasAsignadas, 
+    public int guardar(int asistenciaId, String fecha, String temasVistos, String tareasAsignadas, 
                       String nivelComprension, String participacion, String cumplimientoTareas, 
                       BigDecimal calificacion, String resumen, String logros, String dificultades, 
                       String recomendaciones, String observaciones, String estado) throws SQLException{
         
-        String query = "INSERT INTO informe_clase(inscripcion_id, fecha, temas_vistos, tareas_asignadas, " +
+        String query = "INSERT INTO informe_clase(asistencia_id, fecha, temas_vistos, tareas_asignadas, " +
                       "nivel_comprension, participacion, cumplimiento_tareas, calificacion, resumen, " +
                       "logros, dificultades, recomendaciones, observaciones, estado)" 
                      + " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?) RETURNING id";
         PreparedStatement ps = connection.connect().prepareStatement(query);
 
-        ps.setInt(1, inscripcionId);
+        ps.setInt(1, asistenciaId);
         ps.setDate(2, Date.valueOf(fecha));
         ps.setString(3, temasVistos);
         ps.setString(4, tareasAsignadas);
@@ -98,15 +99,19 @@ public class DInformeclase {
     public List<String[]> listar() throws SQLException{
         List<String[]> informes = new ArrayList<>();
         String query = "SELECT ic.*, " +
-                      "i.alumno_id, i.tutor_id, i.servicio_id, " +
-                      "a.nombre as alumno_nombre, a.apellido as alumno_apellido, " +
-                      "t.nombre as tutor_nombre, t.apellido as tutor_apellido, " +
+                      "a.inscripcion_id, " +
+                      "i.alumno_id, i.tutor_id, i.id_servicio, " +
+                      "u_al.nombre || ' ' || u_al.apellido as alumno_nombre, " +
+                      "u_tu.nombre || ' ' || u_tu.apellido as tutor_nombre, " +
                       "s.nombre as servicio_nombre " +
                       "FROM informe_clase ic " +
-                      "JOIN inscripcion i ON ic.inscripcion_id = i.id " +
-                      "JOIN alumno a ON i.alumno_id = a.id " +
+                      "JOIN asistencia a ON ic.asistencia_id = a.id " +
+                      "JOIN inscripcion i ON a.inscripcion_id = i.id " +
+                      "JOIN alumno al ON i.alumno_id = al.id " +
+                      "JOIN usuario u_al ON al.user_id = u_al.id " +
                       "JOIN tutor t ON i.tutor_id = t.id " +
-                      "JOIN servicio s ON i.servicio_id = s.id " +
+                      "JOIN usuario u_tu ON t.user_id = u_tu.id " +
+                      "JOIN servicio s ON i.id_servicio = s.id " +
                       "ORDER BY ic.fecha DESC";
         PreparedStatement ps = connection.connect().prepareStatement(query);
         ResultSet set = ps.executeQuery();
@@ -114,9 +119,10 @@ public class DInformeclase {
         while(set.next()){
             informes.add(new String[] {
                 String.valueOf(set.getInt("id")),
+                String.valueOf(set.getInt("asistencia_id")),
                 String.valueOf(set.getInt("inscripcion_id")),
-                set.getString("alumno_nombre") + " " + set.getString("alumno_apellido"),
-                set.getString("tutor_nombre") + " " + set.getString("tutor_apellido"),
+                set.getString("alumno_nombre"),
+                set.getString("tutor_nombre"),
                 set.getString("servicio_nombre"),
                 set.getString("fecha"),
                 set.getString("temas_vistos"),
@@ -132,15 +138,19 @@ public class DInformeclase {
     public String[] ver(int id) throws SQLException{
         String[] informe = null;
         String query = "SELECT ic.*, " +
+                      "a.inscripcion_id, " +
                       "i.alumno_id, i.tutor_id, " +
-                      "a.nombre as alumno_nombre, a.apellido as alumno_apellido, " +
-                      "t.nombre as tutor_nombre, t.apellido as tutor_apellido, " +
+                      "u_al.nombre || ' ' || u_al.apellido as alumno_nombre, " +
+                      "u_tu.nombre || ' ' || u_tu.apellido as tutor_nombre, " +
                       "s.nombre as servicio_nombre " +
                       "FROM informe_clase ic " +
-                      "JOIN inscripcion i ON ic.inscripcion_id = i.id " +
-                      "JOIN alumno a ON i.alumno_id = a.id " +
+                      "JOIN asistencia a ON ic.asistencia_id = a.id " +
+                      "JOIN inscripcion i ON a.inscripcion_id = i.id " +
+                      "JOIN alumno al ON i.alumno_id = al.id " +
+                      "JOIN usuario u_al ON al.user_id = u_al.id " +
                       "JOIN tutor t ON i.tutor_id = t.id " +
-                      "JOIN servicio s ON i.servicio_id = s.id " +
+                      "JOIN usuario u_tu ON t.user_id = u_tu.id " +
+                      "JOIN servicio s ON i.id_servicio = s.id " +
                       "WHERE ic.id=?";
         PreparedStatement ps = connection.connect().prepareStatement(query);
         ps.setInt(1, id);
@@ -149,9 +159,10 @@ public class DInformeclase {
         if (set.next()) {
             informe = new String[]{
                 String.valueOf(set.getInt("id")),
+                String.valueOf(set.getInt("asistencia_id")),
                 String.valueOf(set.getInt("inscripcion_id")),
-                set.getString("alumno_nombre") + " " + set.getString("alumno_apellido"),
-                set.getString("tutor_nombre") + " " + set.getString("tutor_apellido"),
+                set.getString("alumno_nombre"),
+                set.getString("tutor_nombre"),
                 set.getString("servicio_nombre"),
                 set.getString("fecha"),
                 set.getString("temas_vistos"),
@@ -170,6 +181,42 @@ public class DInformeclase {
         }
         
         return informe;
+    }
+    
+    // Nuevo método: listar informes por asistencia
+    public List<String[]> listarPorAsistencia(int asistenciaId) throws SQLException{
+        List<String[]> informes = new ArrayList<>();
+        String query = "SELECT * FROM informe_clase WHERE asistencia_id=? ORDER BY fecha DESC";
+        PreparedStatement ps = connection.connect().prepareStatement(query);
+        ps.setInt(1, asistenciaId);
+        ResultSet set = ps.executeQuery();
+        
+        while(set.next()){
+            informes.add(new String[] {
+                String.valueOf(set.getInt("id")),
+                set.getString("fecha"),
+                set.getString("temas_vistos"),
+                set.getString("nivel_comprension"),
+                set.getString("participacion"),
+                set.getBigDecimal("calificacion") != null ? set.getBigDecimal("calificacion").toString() : "N/A",
+                set.getString("estado")
+            });
+        }
+        return informes;
+    }
+    
+    // Verificar si ya existe un informe para una asistencia en una fecha
+    public boolean existeInforme(int asistenciaId, String fecha) throws SQLException{
+        String query = "SELECT COUNT(*) as total FROM informe_clase WHERE asistencia_id=? AND fecha=?";
+        PreparedStatement ps = connection.connect().prepareStatement(query);
+        ps.setInt(1, asistenciaId);
+        ps.setDate(2, Date.valueOf(fecha));
+        ResultSet set = ps.executeQuery();
+        
+        if(set.next()){
+            return set.getInt("total") > 0;
+        }
+        return false;
     }
     
     public void disconnect(){

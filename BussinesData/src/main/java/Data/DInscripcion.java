@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
+import org.postgresql.util.PGobject;
 
 /**
  * @author Rafa
@@ -17,19 +18,25 @@ public class DInscripcion {
         connection = new SqlConnection("postgres", "leyendas13", "127.0.0.1", "5432", "prueba_tecno");
     }
     
-    public int guardar(int servicioId, int alumnoId, int tutorId, String fechaInscripcion, String direccion, String fotoUrl, String estado, String observaciones) throws SQLException{
-        String query = "INSERT INTO inscripcion(servicio_id, alumno_id, tutor_id, fecha_inscripcion, direccion, foto_url, estado, observaciones)" 
-                     + " VALUES(?,?,?,?,?,?,?,?) RETURNING id";
+    public int guardar(int servicioId, int alumnoId, int tutorId, String horarios, String fechaInscripcion, String estado, String observaciones) throws SQLException{
+        String query = "INSERT INTO inscripcion(id_servicio, alumno_id, tutor_id, horarios, fecha_inscripcion, estado, observaciones)" 
+                     + " VALUES(?,?,?,?::json,?,?,?) RETURNING id";
         PreparedStatement ps = connection.connect().prepareStatement(query);
 
         ps.setInt(1, servicioId);
         ps.setInt(2, alumnoId);
         ps.setInt(3, tutorId);
-        ps.setDate(4, fechaInscripcion != null ? Date.valueOf(fechaInscripcion) : new Date(System.currentTimeMillis()));
-        ps.setString(5, direccion);
-        ps.setString(6, fotoUrl);
-        ps.setString(7, estado != null ? estado : "activo");
-        ps.setString(8, observaciones);
+        
+        // Manejar el JSON para horarios
+        if(horarios != null && !horarios.isEmpty()) {
+            ps.setString(4, horarios);
+        } else {
+            ps.setNull(4, java.sql.Types.OTHER);
+        }
+        
+        ps.setDate(5, fechaInscripcion != null ? Date.valueOf(fechaInscripcion) : new Date(System.currentTimeMillis()));
+        ps.setString(6, estado != null ? estado : "activo");
+        ps.setString(7, observaciones);
 
         ResultSet rs = ps.executeQuery();
         if(rs.next()){
@@ -40,16 +47,21 @@ public class DInscripcion {
         }
     }
     
-    public void modificar(int id, String direccion, String fotoUrl, String estado, String observaciones) throws SQLException{
-        String query = "UPDATE inscripcion SET direccion=?, foto_url=?, estado=?, observaciones=?" 
+    public void modificar(int id, String horarios, String estado, String observaciones) throws SQLException{
+        String query = "UPDATE inscripcion SET horarios=?::json, estado=?, observaciones=?" 
                      + " WHERE id=?";
         PreparedStatement ps = connection.connect().prepareStatement(query);
         
-        ps.setString(1, direccion);
-        ps.setString(2, fotoUrl);
-        ps.setString(3, estado);
-        ps.setString(4, observaciones);
-        ps.setInt(5, id);
+        // Manejar el JSON para horarios
+        if(horarios != null && !horarios.isEmpty()) {
+            ps.setString(1, horarios);
+        } else {
+            ps.setNull(1, java.sql.Types.OTHER);
+        }
+        
+        ps.setString(2, estado);
+        ps.setString(3, observaciones);
+        ps.setInt(4, id);
         
         if(ps.executeUpdate() == 0){
             System.err.println("Class DInscripcion.java dice: Ocurrio un error al modificar una inscripcion modificar()");
@@ -72,12 +84,15 @@ public class DInscripcion {
         List<String[]> inscripciones = new ArrayList<>();
         String query = "SELECT i.*, " +
                       "s.nombre as servicio_nombre, " +
-                      "a.nombre as alumno_nombre, a.apellido as alumno_apellido, " +
-                      "t.nombre as tutor_nombre, t.apellido as tutor_apellido " +
+                      "u_al.nombre || ' ' || u_al.apellido as alumno_nombre, " +
+                      "a.codigo as alumno_codigo, " +
+                      "u_tu.nombre || ' ' || u_tu.apellido as tutor_nombre " +
                       "FROM inscripcion i " +
-                      "JOIN servicio s ON i.servicio_id = s.id " +
+                      "JOIN servicio s ON i.id_servicio = s.id " +
                       "JOIN alumno a ON i.alumno_id = a.id " +
+                      "JOIN usuario u_al ON a.user_id = u_al.id " +
                       "JOIN tutor t ON i.tutor_id = t.id " +
+                      "JOIN usuario u_tu ON t.user_id = u_tu.id " +
                       "ORDER BY i.fecha_inscripcion DESC";
         PreparedStatement ps = connection.connect().prepareStatement(query);
         ResultSet set = ps.executeQuery();
@@ -85,15 +100,15 @@ public class DInscripcion {
         while(set.next()){
             inscripciones.add(new String[] {
                 String.valueOf(set.getInt("id")),
-                String.valueOf(set.getInt("servicio_id")),
+                String.valueOf(set.getInt("id_servicio")),
                 String.valueOf(set.getInt("alumno_id")),
                 String.valueOf(set.getInt("tutor_id")),
                 set.getString("servicio_nombre"),
-                set.getString("alumno_nombre") + " " + set.getString("alumno_apellido"),
-                set.getString("tutor_nombre") + " " + set.getString("tutor_apellido"),
+                set.getString("alumno_nombre"),
+                set.getString("alumno_codigo"),
+                set.getString("tutor_nombre"),
+                set.getString("horarios") != null ? set.getString("horarios") : "[]",
                 set.getString("fecha_inscripcion"),
-                set.getString("direccion"),
-                set.getString("foto_url"),
                 set.getString("estado"),
                 set.getString("observaciones")
             });
@@ -105,12 +120,15 @@ public class DInscripcion {
         String[] inscripcion = null;
         String query = "SELECT i.*, " +
                       "s.nombre as servicio_nombre, " +
-                      "a.nombre as alumno_nombre, a.apellido as alumno_apellido, " +
-                      "t.nombre as tutor_nombre, t.apellido as tutor_apellido " +
+                      "u_al.nombre || ' ' || u_al.apellido as alumno_nombre, " +
+                      "a.codigo as alumno_codigo, " +
+                      "u_tu.nombre || ' ' || u_tu.apellido as tutor_nombre " +
                       "FROM inscripcion i " +
-                      "JOIN servicio s ON i.servicio_id = s.id " +
+                      "JOIN servicio s ON i.id_servicio = s.id " +
                       "JOIN alumno a ON i.alumno_id = a.id " +
+                      "JOIN usuario u_al ON a.user_id = u_al.id " +
                       "JOIN tutor t ON i.tutor_id = t.id " +
+                      "JOIN usuario u_tu ON t.user_id = u_tu.id " +
                       "WHERE i.id=?";
         PreparedStatement ps = connection.connect().prepareStatement(query);
         ps.setInt(1, id);
@@ -119,15 +137,15 @@ public class DInscripcion {
         if (set.next()) {
             inscripcion = new String[]{
                 String.valueOf(set.getInt("id")),
-                String.valueOf(set.getInt("servicio_id")),
+                String.valueOf(set.getInt("id_servicio")),
                 String.valueOf(set.getInt("alumno_id")),
                 String.valueOf(set.getInt("tutor_id")),
                 set.getString("servicio_nombre"),
-                set.getString("alumno_nombre") + " " + set.getString("alumno_apellido"),
-                set.getString("tutor_nombre") + " " + set.getString("tutor_apellido"),
+                set.getString("alumno_nombre"),
+                set.getString("alumno_codigo"),
+                set.getString("tutor_nombre"),
+                set.getString("horarios") != null ? set.getString("horarios") : "[]",
                 set.getString("fecha_inscripcion"),
-                set.getString("direccion"),
-                set.getString("foto_url"),
                 set.getString("estado"),
                 set.getString("observaciones")
             };
@@ -140,10 +158,11 @@ public class DInscripcion {
         List<String[]> inscripciones = new ArrayList<>();
         String query = "SELECT i.*, " +
                       "s.nombre as servicio_nombre, " +
-                      "t.nombre as tutor_nombre, t.apellido as tutor_apellido " +
+                      "u_tu.nombre || ' ' || u_tu.apellido as tutor_nombre " +
                       "FROM inscripcion i " +
-                      "JOIN servicio s ON i.servicio_id = s.id " +
+                      "JOIN servicio s ON i.id_servicio = s.id " +
                       "JOIN tutor t ON i.tutor_id = t.id " +
+                      "JOIN usuario u_tu ON t.user_id = u_tu.id " +
                       "WHERE i.alumno_id=? " +
                       "ORDER BY i.fecha_inscripcion DESC";
         PreparedStatement ps = connection.connect().prepareStatement(query);
@@ -153,9 +172,10 @@ public class DInscripcion {
         while(set.next()){
             inscripciones.add(new String[] {
                 String.valueOf(set.getInt("id")),
-                String.valueOf(set.getInt("servicio_id")),
+                String.valueOf(set.getInt("id_servicio")),
                 set.getString("servicio_nombre"),
-                set.getString("tutor_nombre") + " " + set.getString("tutor_apellido"),
+                set.getString("tutor_nombre"),
+                set.getString("horarios") != null ? set.getString("horarios") : "[]",
                 set.getString("fecha_inscripcion"),
                 set.getString("estado"),
                 set.getString("observaciones")
@@ -168,13 +188,15 @@ public class DInscripcion {
         List<String[]> inscripciones = new ArrayList<>();
         String query = "SELECT i.*, " +
                       "s.nombre as servicio_nombre, " +
-                      "a.nombre as alumno_nombre, a.apellido as alumno_apellido, " +
+                      "u_al.nombre || ' ' || u_al.apellido as alumno_nombre, " +
+                      "a.codigo as alumno_codigo, " +
                       "a.grado_escolar " +
                       "FROM inscripcion i " +
-                      "JOIN servicio s ON i.servicio_id = s.id " +
+                      "JOIN servicio s ON i.id_servicio = s.id " +
                       "JOIN alumno a ON i.alumno_id = a.id " +
+                      "JOIN usuario u_al ON a.user_id = u_al.id " +
                       "WHERE i.tutor_id=? " +
-                      "ORDER BY a.apellido";
+                      "ORDER BY u_al.apellido";
         PreparedStatement ps = connection.connect().prepareStatement(query);
         ps.setInt(1, tutorId);
         ResultSet set = ps.executeQuery();
@@ -183,12 +205,13 @@ public class DInscripcion {
             inscripciones.add(new String[] {
                 String.valueOf(set.getInt("id")),
                 String.valueOf(set.getInt("alumno_id")),
-                String.valueOf(set.getInt("servicio_id")),
+                String.valueOf(set.getInt("id_servicio")),
                 set.getString("servicio_nombre"),
-                set.getString("alumno_nombre") + " " + set.getString("alumno_apellido"),
+                set.getString("alumno_nombre"),
+                set.getString("alumno_codigo"),
                 set.getString("grado_escolar"),
+                set.getString("horarios") != null ? set.getString("horarios") : "[]",
                 set.getString("fecha_inscripcion"),
-                set.getString("direccion"),
                 set.getString("estado"),
                 set.getString("observaciones")
             });
@@ -199,12 +222,15 @@ public class DInscripcion {
     public List<String[]> listarPorServicio(int servicioId) throws SQLException{
         List<String[]> inscripciones = new ArrayList<>();
         String query = "SELECT i.*, " +
-                      "a.nombre as alumno_nombre, a.apellido as alumno_apellido, " +
-                      "t.nombre as tutor_nombre, t.apellido as tutor_apellido " +
+                      "u_al.nombre || ' ' || u_al.apellido as alumno_nombre, " +
+                      "a.codigo as alumno_codigo, " +
+                      "u_tu.nombre || ' ' || u_tu.apellido as tutor_nombre " +
                       "FROM inscripcion i " +
                       "JOIN alumno a ON i.alumno_id = a.id " +
+                      "JOIN usuario u_al ON a.user_id = u_al.id " +
                       "JOIN tutor t ON i.tutor_id = t.id " +
-                      "WHERE i.servicio_id=? " +
+                      "JOIN usuario u_tu ON t.user_id = u_tu.id " +
+                      "WHERE i.id_servicio=? " +
                       "ORDER BY i.fecha_inscripcion DESC";
         PreparedStatement ps = connection.connect().prepareStatement(query);
         ps.setInt(1, servicioId);
@@ -213,8 +239,9 @@ public class DInscripcion {
         while(set.next()){
             inscripciones.add(new String[] {
                 String.valueOf(set.getInt("id")),
-                set.getString("alumno_nombre") + " " + set.getString("alumno_apellido"),
-                set.getString("tutor_nombre") + " " + set.getString("tutor_apellido"),
+                set.getString("alumno_nombre"),
+                set.getString("alumno_codigo"),
+                set.getString("tutor_nombre"),
                 set.getString("fecha_inscripcion"),
                 set.getString("estado")
             });
@@ -223,7 +250,7 @@ public class DInscripcion {
     }
     
     public boolean existeInscripcion(int alumnoId, int tutorId, int servicioId) throws SQLException{
-        String query = "SELECT COUNT(*) as total FROM inscripcion WHERE alumno_id=? AND tutor_id=? AND servicio_id=? AND estado='activo'";
+        String query = "SELECT COUNT(*) as total FROM inscripcion WHERE alumno_id=? AND tutor_id=? AND id_servicio=? AND estado='activo'";
         PreparedStatement ps = connection.connect().prepareStatement(query);
         ps.setInt(1, alumnoId);
         ps.setInt(2, tutorId);

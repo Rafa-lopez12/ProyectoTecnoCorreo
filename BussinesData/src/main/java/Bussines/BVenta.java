@@ -6,6 +6,8 @@ import java.util.List;
 
 /**
  * @author Rafa
+ * CAMBIO IMPORTANTE: Ahora venta trabaja con inscripcion_id en lugar de alumno_id
+ * Además, se agregó el campo cuotas
  */
 public class BVenta {
     private DVenta dVenta;
@@ -15,11 +17,12 @@ public class BVenta {
     }
     
     public int guardar(List<String> parametros) throws SQLException{
-        // parametros: [0]alumno_id, [1]propietario_id, [2]tipo_venta, [3]monto_total, 
-        //             [4]monto_pagado, [5]mes_correspondiente, [6]fecha_venta, [7]fecha_vencimiento
+        // parametros: [0]inscripcion_id (CAMBIO: era alumno_id), [1]propietario_id, 
+        //             [2]tipo_venta, [3]cuotas (NUEVO), [4]monto_total, 
+        //             [5]monto_pagado, [6]mes_correspondiente, [7]fecha_venta, [8]fecha_vencimiento
         
-        double montoTotal = Double.parseDouble(parametros.get(3));
-        double montoPagado = Double.parseDouble(parametros.get(4));
+        double montoTotal = Double.parseDouble(parametros.get(4));
+        double montoPagado = Double.parseDouble(parametros.get(5));
         double saldoPendiente = montoTotal - montoPagado;
         
         Integer propietarioId = null;
@@ -27,25 +30,29 @@ public class BVenta {
             propietarioId = Integer.parseInt(parametros.get(1));
         }
         
+        Integer cuotas = null;
+        if(parametros.get(3) != null && !parametros.get(3).isEmpty() && !parametros.get(3).equals("null")) {
+            cuotas = Integer.parseInt(parametros.get(3));
+        }
+        
         String estado = (saldoPendiente <= 0) ? "pagado" : "pendiente";
         
         int ventaId = dVenta.guardar(
-            Integer.parseInt(parametros.get(0)),  // alumno_id
+            Integer.parseInt(parametros.get(0)),  // inscripcion_id (CAMBIO)
             propietarioId,                         // propietario_id
             parametros.get(2),                     // tipo_venta
+            cuotas,                                // cuotas (NUEVO)
             montoTotal,                            // monto_total
             montoPagado,                           // monto_pagado
             saldoPendiente,                        // saldo_pendiente
-            parametros.get(5),                     // mes_correspondiente
-            parametros.get(6),                     // fecha_venta
-            parametros.get(7),                     // fecha_vencimiento
+            parametros.get(6),                     // mes_correspondiente
+            parametros.get(7),                     // fecha_venta
+            parametros.get(8),                     // fecha_vencimiento
             estado
         );
         dVenta.disconnect();
         return ventaId;
     }
-    
-    
     
     public ArrayList<String[]> listar() throws SQLException{
         ArrayList<String[]> ventas = (ArrayList<String[]>) dVenta.listar();
@@ -61,6 +68,13 @@ public class BVenta {
     
     public ArrayList<String[]> listarPorAlumno(int alumnoId) throws SQLException{
         ArrayList<String[]> ventas = (ArrayList<String[]>) dVenta.listarPorAlumno(alumnoId);
+        dVenta.disconnect();
+        return ventas;
+    }
+    
+    // NUEVO método: listar ventas por inscripción
+    public ArrayList<String[]> listarPorInscripcion(int inscripcionId) throws SQLException{
+        ArrayList<String[]> ventas = (ArrayList<String[]>) dVenta.listarPorInscripcion(inscripcionId);
         dVenta.disconnect();
         return ventas;
     }
@@ -85,11 +99,12 @@ public class BVenta {
     
     // Métodos específicos para gestión de ventas
     
-    public void registrarVentaContado(int alumnoId, Integer propietarioId, double monto, String mesCorrespondiente) throws SQLException{
+    public void registrarVentaContado(int inscripcionId, Integer propietarioId, double monto, String mesCorrespondiente) throws SQLException{
         List<String> parametros = new ArrayList<>();
-        parametros.add(String.valueOf(alumnoId));
+        parametros.add(String.valueOf(inscripcionId));
         parametros.add(propietarioId != null ? String.valueOf(propietarioId) : "null");
         parametros.add("contado");
+        parametros.add("null"); // cuotas (no aplica para contado)
         parametros.add(String.valueOf(monto));
         parametros.add(String.valueOf(monto)); // monto_pagado = monto_total
         parametros.add(mesCorrespondiente);
@@ -98,13 +113,14 @@ public class BVenta {
         guardar(parametros);
     }
     
-    public void registrarVentaCredito(int alumnoId, Integer propietarioId, double monto, 
+    public void registrarVentaCredito(int inscripcionId, Integer propietarioId, double monto, 
                                       double montoPagado, String mesCorrespondiente, 
-                                      String fechaVencimiento) throws SQLException{
+                                      String fechaVencimiento, Integer cuotas) throws SQLException{
         List<String> parametros = new ArrayList<>();
-        parametros.add(String.valueOf(alumnoId));
+        parametros.add(String.valueOf(inscripcionId));
         parametros.add(propietarioId != null ? String.valueOf(propietarioId) : "null");
         parametros.add("credito");
+        parametros.add(cuotas != null ? String.valueOf(cuotas) : "null");
         parametros.add(String.valueOf(monto));
         parametros.add(String.valueOf(montoPagado));
         parametros.add(mesCorrespondiente);

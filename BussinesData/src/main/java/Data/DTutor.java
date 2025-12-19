@@ -5,7 +5,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.sql.Date;
 
 /**
  * @author Rafa
@@ -17,18 +16,16 @@ public class DTutor {
         connection = new SqlConnection("postgres", "leyendas13", "127.0.0.1", "5432", "prueba_tecno");
     }
     
-    public void guardar(String nombre, String apellido, String email, String telefono, String fechaNacimiento, String direccion, String estado) throws SQLException{
-        String query = "INSERT INTO tutor(nombre, apellido, email, telefono, fecha_nacimiento, direccion, estado)" 
-                     + " VALUES(?,?,?,?,?,?,?)";
+    public void guardar(int userId, String rol, String grado, String email, String password) throws SQLException{
+        String query = "INSERT INTO tutor(user_id, rol, grado, email, password)" 
+                     + " VALUES(?,?,?,?,?)";
         PreparedStatement ps = connection.connect().prepareStatement(query);
 
-        ps.setString(1, nombre);
-        ps.setString(2, apellido);
-        ps.setString(3, email);
-        ps.setString(4, telefono);
-        ps.setDate(5, fechaNacimiento != null ? Date.valueOf(fechaNacimiento) : null);
-        ps.setString(6, direccion);
-        ps.setString(7, estado != null ? estado : "activo");
+        ps.setInt(1, userId);
+        ps.setString(2, rol);
+        ps.setString(3, grado);
+        ps.setString(4, email);
+        ps.setString(5, password); // Debería estar hasheado
 
         if(ps.executeUpdate() == 0){
             System.err.println("Class DTutor.java dice: Ocurrio un error al insertar un tutor guardar()");
@@ -36,19 +33,27 @@ public class DTutor {
         }
     }
     
-    public void modificar(int id, String nombre, String apellido, String email, String telefono, String fechaNacimiento, String direccion, String estado) throws SQLException{
-        String query = "UPDATE tutor SET nombre=?, apellido=?, email=?, telefono=?, fecha_nacimiento=?, direccion=?, estado=?" 
-                     + " WHERE id=?";
-        PreparedStatement ps = connection.connect().prepareStatement(query);
+    public void modificar(int id, String rol, String grado, String email, String password) throws SQLException{
+        String query;
+        PreparedStatement ps;
         
-        ps.setString(1, nombre);
-        ps.setString(2, apellido);
-        ps.setString(3, email);
-        ps.setString(4, telefono);
-        ps.setDate(5, fechaNacimiento != null ? Date.valueOf(fechaNacimiento) : null);
-        ps.setString(6, direccion);
-        ps.setString(7, estado);
-        ps.setInt(8, id);
+        // Si no se proporciona password, no lo actualizamos
+        if(password == null || password.isEmpty()){
+            query = "UPDATE tutor SET rol=?, grado=?, email=? WHERE id=?";
+            ps = connection.connect().prepareStatement(query);
+            ps.setString(1, rol);
+            ps.setString(2, grado);
+            ps.setString(3, email);
+            ps.setInt(4, id);
+        } else {
+            query = "UPDATE tutor SET rol=?, grado=?, email=?, password=? WHERE id=?";
+            ps = connection.connect().prepareStatement(query);
+            ps.setString(1, rol);
+            ps.setString(2, grado);
+            ps.setString(3, email);
+            ps.setString(4, password); // Debería estar hasheado
+            ps.setInt(5, id);
+        }
         
         if(ps.executeUpdate() == 0){
             System.err.println("Class DTutor.java dice: Ocurrio un error al modificar un tutor modificar()");
@@ -69,20 +74,26 @@ public class DTutor {
     
     public List<String[]> listar() throws SQLException{
         List<String[]> tutores = new ArrayList<>();
-        String query = "SELECT * FROM tutor ORDER BY id";
+        String query = "SELECT t.*, u.nombre, u.apellido, u.telefono, u.fecha_nacimiento, u.direccion, u.estado " +
+                      "FROM tutor t " +
+                      "INNER JOIN usuario u ON t.user_id = u.id " +
+                      "ORDER BY t.id";
         PreparedStatement ps = connection.connect().prepareStatement(query);
         ResultSet set = ps.executeQuery();
         
         while(set.next()){
             tutores.add(new String[] {
                 String.valueOf(set.getInt("id")),
+                String.valueOf(set.getInt("user_id")),
                 set.getString("nombre"),
                 set.getString("apellido"),
-                set.getString("email"),
                 set.getString("telefono"),
                 set.getString("fecha_nacimiento"),
                 set.getString("direccion"),
-                set.getString("estado")
+                set.getString("estado"),
+                set.getString("rol"),
+                set.getString("grado"),
+                set.getString("email")
             });
         }
         return tutores;
@@ -90,7 +101,10 @@ public class DTutor {
     
     public String[] ver(int id) throws SQLException{
         String[] tutor = null;
-        String query = "SELECT * FROM tutor WHERE id=?";
+        String query = "SELECT t.*, u.nombre, u.apellido, u.telefono, u.fecha_nacimiento, u.direccion, u.estado " +
+                      "FROM tutor t " +
+                      "INNER JOIN usuario u ON t.user_id = u.id " +
+                      "WHERE t.id=?";
         PreparedStatement ps = connection.connect().prepareStatement(query);
         ps.setInt(1, id);
         ResultSet set = ps.executeQuery();
@@ -98,17 +112,35 @@ public class DTutor {
         if (set.next()) {
             tutor = new String[]{
                 String.valueOf(set.getInt("id")),
+                String.valueOf(set.getInt("user_id")),
                 set.getString("nombre"),
                 set.getString("apellido"),
-                set.getString("email"),
                 set.getString("telefono"),
                 set.getString("fecha_nacimiento"),
                 set.getString("direccion"),
-                set.getString("estado")
+                set.getString("estado"),
+                set.getString("rol"),
+                set.getString("grado"),
+                set.getString("email")
             };
         }
         
         return tutor;
+    }
+    
+    public boolean validarCredenciales(String email, String password) throws SQLException{
+        String query = "SELECT password FROM tutor WHERE email=?";
+        PreparedStatement ps = connection.connect().prepareStatement(query);
+        ps.setString(1, email);
+        ResultSet set = ps.executeQuery();
+        
+        if(set.next()){
+            String storedPassword = set.getString("password");
+            // Aquí deberías comparar con hash
+            return storedPassword.equals(password);
+        }
+        
+        return false;
     }
     
     public void disconnect(){

@@ -17,20 +17,16 @@ public class DAlumno {
         connection = new SqlConnection("postgres", "leyendas13", "127.0.0.1", "5432", "prueba_tecno");
     }
     
-    public void guardar(String nombre, String apellido, String email, String telefono, String fechaNacimiento, String direccion, String estado, String gradoEscolar, String fechaIngreso) throws SQLException{
-        String query = "INSERT INTO alumno(nombre, apellido, email, telefono, fecha_nacimiento, direccion, estado, grado_escolar, fecha_ingreso)" 
-                     + " VALUES(?,?,?,?,?,?,?,?,?)";
+    // Ahora requiere user_id y código
+    public void guardar(int userId, String codigo, String gradoEscolar, String fechaIngreso) throws SQLException{
+        String query = "INSERT INTO alumno(user_id, codigo, grado_escolar, fecha_ingreso)" 
+                     + " VALUES(?,?,?,?)";
         PreparedStatement ps = connection.connect().prepareStatement(query);
 
-        ps.setString(1, nombre);
-        ps.setString(2, apellido);
-        ps.setString(3, email);
-        ps.setString(4, telefono);
-        ps.setDate(5, fechaNacimiento != null ? Date.valueOf(fechaNacimiento) : null);
-        ps.setString(6, direccion);
-        ps.setString(7, estado != null ? estado : "activo");
-        ps.setString(8, gradoEscolar);
-        ps.setDate(9, Date.valueOf(fechaIngreso));
+        ps.setInt(1, userId);
+        ps.setString(2, codigo);
+        ps.setString(3, gradoEscolar);
+        ps.setDate(4, Date.valueOf(fechaIngreso));
 
         if(ps.executeUpdate() == 0){
             System.err.println("Class DAlumno.java dice: Ocurrio un error al insertar un alumno guardar()");
@@ -38,21 +34,15 @@ public class DAlumno {
         }
     }
     
-    public void modificar(int id, String nombre, String apellido, String email, String telefono, String fechaNacimiento, String direccion, String estado, String gradoEscolar, String fechaIngreso) throws SQLException{
-        String query = "UPDATE alumno SET nombre=?, apellido=?, email=?, telefono=?, fecha_nacimiento=?, direccion=?, estado=?, grado_escolar=?, fecha_ingreso=?" 
+    public void modificar(int id, String codigo, String gradoEscolar, String fechaIngreso) throws SQLException{
+        String query = "UPDATE alumno SET codigo=?, grado_escolar=?, fecha_ingreso=?" 
                      + " WHERE id=?";
         PreparedStatement ps = connection.connect().prepareStatement(query);
         
-        ps.setString(1, nombre);
-        ps.setString(2, apellido);
-        ps.setString(3, email);
-        ps.setString(4, telefono);
-        ps.setDate(5, fechaNacimiento != null ? Date.valueOf(fechaNacimiento) : null);
-        ps.setString(6, direccion);
-        ps.setString(7, estado);
-        ps.setString(8, gradoEscolar);
-        ps.setDate(9, Date.valueOf(fechaIngreso));
-        ps.setInt(10, id);
+        ps.setString(1, codigo);
+        ps.setString(2, gradoEscolar);
+        ps.setDate(3, Date.valueOf(fechaIngreso));
+        ps.setInt(4, id);
         
         if(ps.executeUpdate() == 0){
             System.err.println("Class DAlumno.java dice: Ocurrio un error al modificar un alumno modificar()");
@@ -71,18 +61,23 @@ public class DAlumno {
         }
     }
     
+    // Listar con JOIN a usuario para obtener datos completos
     public List<String[]> listar() throws SQLException{
         List<String[]> alumnos = new ArrayList<>();
-        String query = "SELECT * FROM alumno ORDER BY id";
+        String query = "SELECT a.*, u.nombre, u.apellido, u.telefono, u.fecha_nacimiento, u.direccion, u.estado " +
+                      "FROM alumno a " +
+                      "INNER JOIN usuario u ON a.user_id = u.id " +
+                      "ORDER BY a.id";
         PreparedStatement ps = connection.connect().prepareStatement(query);
         ResultSet set = ps.executeQuery();
         
         while(set.next()){
             alumnos.add(new String[] {
                 String.valueOf(set.getInt("id")),
+                String.valueOf(set.getInt("user_id")),
+                set.getString("codigo"),
                 set.getString("nombre"),
                 set.getString("apellido"),
-                set.getString("email"),
                 set.getString("telefono"),
                 set.getString("fecha_nacimiento"),
                 set.getString("direccion"),
@@ -96,7 +91,10 @@ public class DAlumno {
     
     public String[] ver(int id) throws SQLException{
         String[] alumno = null;
-        String query = "SELECT * FROM alumno WHERE id=?";
+        String query = "SELECT a.*, u.nombre, u.apellido, u.telefono, u.email, u.fecha_nacimiento, u.direccion, u.estado " +
+                      "FROM alumno a " +
+                      "INNER JOIN usuario u ON a.user_id = u.id " +
+                      "WHERE a.id=?";
         PreparedStatement ps = connection.connect().prepareStatement(query);
         ps.setInt(1, id);
         ResultSet set = ps.executeQuery();
@@ -104,6 +102,8 @@ public class DAlumno {
         if (set.next()) {
             alumno = new String[]{
                 String.valueOf(set.getInt("id")),
+                String.valueOf(set.getInt("user_id")),
+                set.getString("codigo"),
                 set.getString("nombre"),
                 set.getString("apellido"),
                 set.getString("email"),
@@ -121,7 +121,11 @@ public class DAlumno {
     
     public List<String[]> listarPorGrado(String gradoEscolar) throws SQLException{
         List<String[]> alumnos = new ArrayList<>();
-        String query = "SELECT * FROM alumno WHERE grado_escolar=? ORDER BY id";
+        String query = "SELECT a.*, u.nombre, u.apellido, u.telefono, u.fecha_nacimiento, u.direccion, u.estado " +
+                      "FROM alumno a " +
+                      "INNER JOIN usuario u ON a.user_id = u.id " +
+                      "WHERE a.grado_escolar=? " +
+                      "ORDER BY u.apellido";
         PreparedStatement ps = connection.connect().prepareStatement(query);
         ps.setString(1, gradoEscolar);
         ResultSet set = ps.executeQuery();
@@ -129,9 +133,10 @@ public class DAlumno {
         while(set.next()){
             alumnos.add(new String[] {
                 String.valueOf(set.getInt("id")),
+                String.valueOf(set.getInt("user_id")),
+                set.getString("codigo"),
                 set.getString("nombre"),
                 set.getString("apellido"),
-                set.getString("email"),
                 set.getString("telefono"),
                 set.getString("fecha_nacimiento"),
                 set.getString("direccion"),
@@ -141,6 +146,19 @@ public class DAlumno {
             });
         }
         return alumnos;
+    }
+    
+    // Verificar si existe un código
+    public boolean existeCodigo(String codigo) throws SQLException{
+        String query = "SELECT COUNT(*) as total FROM alumno WHERE codigo=?";
+        PreparedStatement ps = connection.connect().prepareStatement(query);
+        ps.setString(1, codigo);
+        ResultSet set = ps.executeQuery();
+        
+        if(set.next()){
+            return set.getInt("total") > 0;
+        }
+        return false;
     }
     
     public void disconnect(){

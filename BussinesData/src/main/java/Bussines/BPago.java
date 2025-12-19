@@ -18,22 +18,16 @@ public class BPago {
     }
     
     public int guardar(List<String> parametros) throws SQLException{
-        // parametros: [0]venta_id, [1]monto, [2]metodo_pago, [3]observaciones, [4]registrado_por
-        
         int ventaId = Integer.parseInt(parametros.get(0));
         double montoPago = Double.parseDouble(parametros.get(1));
+        String metodoPago = parametros.get(2);
+        String observaciones = parametros.get(3);
         
-        Integer registradoPor = null;
-        if(parametros.get(4) != null && !parametros.get(4).isEmpty() && !parametros.get(4).equals("null")) {
-            registradoPor = Integer.parseInt(parametros.get(4));
-        }
-        
-        // Registrar el pago
         int pagoId = dPago.guardar(
             ventaId,
             montoPago,
-            parametros.get(2),
-            parametros.get(3)
+            metodoPago,
+            observaciones
         );
         
         // Actualizar los montos en la venta

@@ -13,7 +13,7 @@ public class DServicio {
     private SqlConnection connection;
     
     public DServicio(){
-        connection = new SqlConnection("postgres", "leyendas13", "127.0.0.1", "5432", "prueba_tecno");
+        connection = new SqlConnection("grupo16sa", "grup016grup016*", "mail.tecnoweb.org.bo", "5432", "db_grupo16sa");
     }
     
     // Listar todos los servicios

@@ -15,7 +15,7 @@ public class DPago {
     private SqlConnection connection;
     
     public DPago() {
-        connection = new SqlConnection("postgres", "leyendas13", "127.0.0.1", "5432", "prueba_tecno");
+        connection = new SqlConnection("grupo16sa", "grup016grup016*", "mail.tecnoweb.org.bo", "5432", "db_grupo16sa");
     }
     
     public int guardar(int ventaId, double monto, String metodoPago, String observaciones) throws SQLException {

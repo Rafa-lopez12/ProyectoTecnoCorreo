@@ -5,7 +5,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.sql.Date;
 
 /**
  * @author Rafa
@@ -17,19 +16,15 @@ public class DPropietario {
         connection = new SqlConnection("postgres", "leyendas13", "127.0.0.1", "5432", "prueba_tecno");
     }
     
-    public void guardar(String nombre, String apellido, String email, String password, String telefono, String fechaNacimiento, String direccion, String estado) throws SQLException{
-        String query = "INSERT INTO propietario(nombre, apellido, email, password, telefono, fecha_nacimiento, direccion, estado)" 
-                     + " VALUES(?,?,?,?,?,?,?,?)";
+    public void guardar(int userId, String rol, String email, String password) throws SQLException{
+        String query = "INSERT INTO propietario(user_id, rol, email, password)" 
+                     + " VALUES(?,?,?,?)";
         PreparedStatement ps = connection.connect().prepareStatement(query);
 
-        ps.setString(1, nombre);
-        ps.setString(2, apellido);
+        ps.setInt(1, userId);
+        ps.setString(2, rol);
         ps.setString(3, email);
-        ps.setString(4, password); // Aquí deberías hashear la contraseña
-        ps.setString(5, telefono);
-        ps.setDate(6, fechaNacimiento != null ? Date.valueOf(fechaNacimiento) : null);
-        ps.setString(7, direccion);
-        ps.setString(8, estado != null ? estado : "activo");
+        ps.setString(4, password); // Debería estar hasheado
 
         if(ps.executeUpdate() == 0){
             System.err.println("Class DPropietario.java dice: Ocurrio un error al insertar un propietario guardar()");
@@ -37,36 +32,24 @@ public class DPropietario {
         }
     }
     
-    public void modificar(int id, String nombre, String apellido, String email, String password, String telefono, String fechaNacimiento, String direccion, String estado) throws SQLException{
+    public void modificar(int id, String rol, String email, String password) throws SQLException{
         String query;
         PreparedStatement ps;
         
         // Si no se proporciona password, no lo actualizamos
         if(password == null || password.isEmpty()){
-            query = "UPDATE propietario SET nombre=?, apellido=?, email=?, telefono=?, fecha_nacimiento=?, direccion=?, estado=?" 
-                  + " WHERE id=?";
+            query = "UPDATE propietario SET rol=?, email=? WHERE id=?";
             ps = connection.connect().prepareStatement(query);
-            ps.setString(1, nombre);
-            ps.setString(2, apellido);
-            ps.setString(3, email);
-            ps.setString(4, telefono);
-            ps.setDate(5, fechaNacimiento != null ? Date.valueOf(fechaNacimiento) : null);
-            ps.setString(6, direccion);
-            ps.setString(7, estado);
-            ps.setInt(8, id);
+            ps.setString(1, rol);
+            ps.setString(2, email);
+            ps.setInt(3, id);
         } else {
-            query = "UPDATE propietario SET nombre=?, apellido=?, email=?, password=?, telefono=?, fecha_nacimiento=?, direccion=?, estado=?" 
-                  + " WHERE id=?";
+            query = "UPDATE propietario SET rol=?, email=?, password=? WHERE id=?";
             ps = connection.connect().prepareStatement(query);
-            ps.setString(1, nombre);
-            ps.setString(2, apellido);
-            ps.setString(3, email);
-            ps.setString(4, password); // Aquí deberías hashear la contraseña
-            ps.setString(5, telefono);
-            ps.setDate(6, fechaNacimiento != null ? Date.valueOf(fechaNacimiento) : null);
-            ps.setString(7, direccion);
-            ps.setString(8, estado);
-            ps.setInt(9, id);
+            ps.setString(1, rol);
+            ps.setString(2, email);
+            ps.setString(3, password); // Debería estar hasheado
+            ps.setInt(4, id);
         }
         
         if(ps.executeUpdate() == 0){
@@ -88,20 +71,25 @@ public class DPropietario {
     
     public List<String[]> listar() throws SQLException{
         List<String[]> propietarios = new ArrayList<>();
-        String query = "SELECT id, nombre, apellido, email, telefono, fecha_nacimiento, direccion, estado FROM propietario ORDER BY id";
+        String query = "SELECT p.*, u.nombre, u.apellido, u.telefono, u.fecha_nacimiento, u.direccion, u.estado " +
+                      "FROM propietario p " +
+                      "INNER JOIN usuario u ON p.user_id = u.id " +
+                      "ORDER BY p.id";
         PreparedStatement ps = connection.connect().prepareStatement(query);
         ResultSet set = ps.executeQuery();
         
         while(set.next()){
             propietarios.add(new String[] {
                 String.valueOf(set.getInt("id")),
+                String.valueOf(set.getInt("user_id")),
                 set.getString("nombre"),
                 set.getString("apellido"),
-                set.getString("email"),
                 set.getString("telefono"),
                 set.getString("fecha_nacimiento"),
                 set.getString("direccion"),
-                set.getString("estado")
+                set.getString("estado"),
+                set.getString("rol"),
+                set.getString("email")
             });
         }
         return propietarios;
@@ -109,7 +97,10 @@ public class DPropietario {
     
     public String[] ver(int id) throws SQLException{
         String[] propietario = null;
-        String query = "SELECT id, nombre, apellido, email, telefono, fecha_nacimiento, direccion, estado FROM propietario WHERE id=?";
+        String query = "SELECT p.*, u.nombre, u.apellido, u.telefono, u.fecha_nacimiento, u.direccion, u.estado " +
+                      "FROM propietario p " +
+                      "INNER JOIN usuario u ON p.user_id = u.id " +
+                      "WHERE p.id=?";
         PreparedStatement ps = connection.connect().prepareStatement(query);
         ps.setInt(1, id);
         ResultSet set = ps.executeQuery();
@@ -117,13 +108,15 @@ public class DPropietario {
         if (set.next()) {
             propietario = new String[]{
                 String.valueOf(set.getInt("id")),
+                String.valueOf(set.getInt("user_id")),
                 set.getString("nombre"),
                 set.getString("apellido"),
-                set.getString("email"),
                 set.getString("telefono"),
                 set.getString("fecha_nacimiento"),
                 set.getString("direccion"),
-                set.getString("estado")
+                set.getString("estado"),
+                set.getString("rol"),
+                set.getString("email")
             };
         }
         

@@ -14,7 +14,7 @@ public class DAsistencia {
     private SqlConnection connection;
     
     public DAsistencia(){
-        connection = new SqlConnection("postgres", "leyendas13", "127.0.0.1", "5432", "prueba_tecno");
+        connection = new SqlConnection("grupo16sa", "grup016grup016*", "mail.tecnoweb.org.bo", "5432", "db_grupo16sa");
     }
     
     public int guardar(int inscripcionId, String fecha, String estado, String observaciones) throws SQLException{

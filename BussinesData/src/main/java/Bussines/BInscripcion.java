@@ -15,7 +15,8 @@ public class BInscripcion {
     }
     
     public int guardar(List<String> parametros) throws SQLException{
-        // parametros: [0]servicio_id, [1]alumno_id, [2]tutor_id, [3]fecha_inscripcion, [4]direccion, [5]foto_url, [6]estado, [7]observaciones
+        // parametros: [0]servicio_id, [1]alumno_id, [2]tutor_id, [3]horarios (JSON), 
+        //             [4]fecha_inscripcion, [5]estado, [6]observaciones
         
         int servicioId = Integer.parseInt(parametros.get(0));
         int alumnoId = Integer.parseInt(parametros.get(1));
@@ -31,24 +32,22 @@ public class BInscripcion {
             servicioId,
             alumnoId,
             tutorId,
-            parametros.get(3), 
-            parametros.get(4), 
-            parametros.get(5),
-            parametros.get(6), 
-            parametros.get(7)
+            parametros.get(3),   // horarios (JSON string)
+            parametros.get(4),   // fecha_inscripcion
+            parametros.get(5),   // estado
+            parametros.get(6)    // observaciones
         );
         dInscripcion.disconnect();
         return inscripcionId;
     }
     
     public void modificar(List<String> parametros) throws SQLException{
-        // parametros: [0]id, [1]direccion, [2]foto_url, [3]estado, [4]observaciones
+        // parametros: [0]id, [1]horarios (JSON), [2]estado, [3]observaciones
         dInscripcion.modificar(
             Integer.parseInt(parametros.get(0)), 
-            parametros.get(1), 
-            parametros.get(2),
-            parametros.get(3),
-            parametros.get(4)
+            parametros.get(1),   // horarios (JSON string)
+            parametros.get(2),   // estado
+            parametros.get(3)    // observaciones
         );
         dInscripcion.disconnect();
     }
@@ -92,8 +91,7 @@ public class BInscripcion {
     public void retirarAlumno(int inscripcionId, String motivoRetiro) throws SQLException{
         List<String> parametros = new ArrayList<>();
         parametros.add(String.valueOf(inscripcionId));
-        parametros.add(null); // direccion
-        parametros.add(null); // foto_url
+        parametros.add(null); // horarios
         parametros.add("retirado");
         parametros.add("Retiro: " + motivoRetiro);
         
@@ -103,11 +101,29 @@ public class BInscripcion {
     public void finalizarInscripcion(int inscripcionId) throws SQLException{
         List<String> parametros = new ArrayList<>();
         parametros.add(String.valueOf(inscripcionId));
-        parametros.add(null); // direccion
-        parametros.add(null); // foto_url
+        parametros.add(null); // horarios
         parametros.add("finalizado");
         parametros.add("Curso finalizado exitosamente");
         
         modificar(parametros);
+    }
+    
+    // Método auxiliar para crear JSON de horarios
+    public String crearHorariosJSON(List<String[]> horarios) {
+        // Ejemplo: [{"dia": "Lunes", "hora_inicio": "08:00", "hora_fin": "10:00"}, ...]
+        StringBuilder json = new StringBuilder("[");
+        for(int i = 0; i < horarios.size(); i++) {
+            String[] horario = horarios.get(i);
+            json.append("{")
+                .append("\"dia\":\"").append(horario[0]).append("\",")
+                .append("\"hora_inicio\":\"").append(horario[1]).append("\",")
+                .append("\"hora_fin\":\"").append(horario[2]).append("\"")
+                .append("}");
+            if(i < horarios.size() - 1) {
+                json.append(",");
+            }
+        }
+        json.append("]");
+        return json.toString();
     }
 }

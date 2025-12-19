@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 
 /**
  * @author Rafa
+ * CAMBIO IMPORTANTE: Ahora trabaja con asistencia_id en lugar de inscripcion_id
  */
 public class BInforme_clase {
     private DInformeclase dInformeClase;
@@ -17,10 +18,19 @@ public class BInforme_clase {
     }
     
     public int guardar(List<String> parametros) throws SQLException{
-        // parametros: [0]inscripcion_id, [1]fecha, [2]temas_vistos, [3]tareas_asignadas,
+        // parametros: [0]asistencia_id (CAMBIO: era inscripcion_id), [1]fecha, [2]temas_vistos, [3]tareas_asignadas,
         //            [4]nivel_comprension, [5]participacion, [6]cumplimiento_tareas, [7]calificacion,
         //            [8]resumen, [9]logros, [10]dificultades, [11]recomendaciones, 
         //            [12]observaciones, [13]estado
+        
+        int asistenciaId = Integer.parseInt(parametros.get(0));
+        String fecha = parametros.get(1);
+        
+        // Verificar si ya existe un informe para esta asistencia en esta fecha
+        if(dInformeClase.existeInforme(asistenciaId, fecha)){
+            dInformeClase.disconnect();
+            throw new SQLException("Ya existe un informe para esta asistencia en la fecha " + fecha);
+        }
         
         BigDecimal calificacion = null;
         if(parametros.get(7) != null && !parametros.get(7).isEmpty() && !parametros.get(7).equals("null")){
@@ -28,8 +38,8 @@ public class BInforme_clase {
         }
         
         int informeId = dInformeClase.guardar(
-            Integer.parseInt(parametros.get(0)),
-            parametros.get(1),
+            asistenciaId,           // asistencia_id (CAMBIO)
+            fecha,
             parametros.get(2),
             parametros.get(3),
             parametros.get(4),
@@ -91,5 +101,12 @@ public class BInforme_clase {
         String[] informe = dInformeClase.ver(id);
         dInformeClase.disconnect();
         return informe;
+    }
+    
+    // Nuevo método: listar informes por asistencia
+    public ArrayList<String[]> listarPorAsistencia(int asistenciaId) throws SQLException{
+        ArrayList<String[]> informes = (ArrayList<String[]>) dInformeClase.listarPorAsistencia(asistenciaId);
+        dInformeClase.disconnect();
+        return informes;
     }
 }
