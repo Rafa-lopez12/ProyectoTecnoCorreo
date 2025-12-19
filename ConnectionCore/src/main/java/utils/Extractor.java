@@ -15,6 +15,7 @@ public class Extractor {
     private static String GMAIL = "d=gmail";
     private static String HOTMAIL = "d=hotmail";
     private static String YAHOO = "d=yahoo";
+    private static String UAGRM = "d=uagrm";
     
     
     public static Email getEmail(String plain_text){

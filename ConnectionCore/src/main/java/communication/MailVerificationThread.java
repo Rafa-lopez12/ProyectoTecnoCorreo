@@ -50,6 +50,7 @@ import java.util.Map;
 import java.util.Properties;
 import utils.HtmlTableGenerator;
 import utils.ChartGenerator;
+import utils.HelpGenerator;
 
 /**
  *
@@ -97,6 +98,7 @@ public class MailVerificationThread implements Runnable{
         btutor= new BTutor();
         balumno = new BAlumno();
         bhorario = new BHorario();      
+        bservicio = new BServicio();
         btutorhorario = new BTutorHorario();
         binscripcion = new BInscripcion();
         binformeClase= new BInforme_clase();
@@ -1116,11 +1118,11 @@ public class MailVerificationThread implements Runnable{
 
                 String htmlChart = "";
                 String subject = "";
-               
+
                 if (event.getAction() == Token.REPORTE_ASISTENCIA) {
-                    // Reporte de Asistencias
+                    // 📊 Reporte de Asistencias - GRÁFICO DE DONA
                     Map<String, Integer> datos = breporte.obtenerEstadisticasAsistencia();
-                    htmlChart = ChartGenerator.generatePieChart(
+                    htmlChart = ChartGenerator.generateDoughnutChart(
                         datos,
                         "📊 Estadísticas de Asistencia",
                         "chartAsistencia"
@@ -1129,9 +1131,9 @@ public class MailVerificationThread implements Runnable{
                     System.out.println("✓ Reporte de asistencias generado");
 
                 } else if (event.getAction() == Token.REPORTE_INSCRIPCIONES) {
-                    // Reporte de Inscripciones por Mes
+                    // 📅 Reporte de Inscripciones por Mes - GRÁFICO DE BARRAS
                     Map<String, Integer> datos = breporte.obtenerInscripcionesPorMes();
-                    htmlChart = ChartGenerator.generatePieChart(
+                    htmlChart = ChartGenerator.generateBarChart(
                         datos,
                         "📅 Inscripciones por Mes (Últimos 12 meses)",
                         "chartInscripciones"
@@ -1140,7 +1142,7 @@ public class MailVerificationThread implements Runnable{
                     System.out.println("✓ Reporte de inscripciones generado");
 
                 } else if (event.getAction() == Token.REPORTE_SERVICIOS) {
-                    // Reporte de Alumnos por Servicio
+                    // 👥 Reporte de Alumnos por Servicio - GRÁFICO DE PASTEL
                     Map<String, Integer> datos = breporte.obtenerAlumnosPorServicio();
                     htmlChart = ChartGenerator.generatePieChart(
                         datos,
@@ -1151,9 +1153,9 @@ public class MailVerificationThread implements Runnable{
                     System.out.println("✓ Reporte de servicios generado");
 
                 } else if (event.getAction() == Token.REPORTE_VENTAS) {
-                    // Reporte de Ventas por Estado
+                    // 💰 Reporte de Ventas por Estado - GRÁFICO DE DONA
                     Map<String, Double> datos = breporte.obtenerVentasPorEstado();
-                    htmlChart = ChartGenerator.generatePieChart(
+                    htmlChart = ChartGenerator.generateDoughnutChart(
                         datos,
                         "💰 Ventas por Estado",
                         "chartVentas"
@@ -1162,7 +1164,7 @@ public class MailVerificationThread implements Runnable{
                     System.out.println("✓ Reporte de ventas generado");
 
                 } else if (event.getAction() == Token.REPORTE_LICENCIAS) {
-                    // Reporte de Licencias por Estado
+                    // 📋 Reporte de Licencias por Estado - GRÁFICO DE PASTEL
                     Map<String, Integer> datos = breporte.obtenerLicenciasPorEstado();
                     htmlChart = ChartGenerator.generatePieChart(
                         datos,
@@ -1173,9 +1175,9 @@ public class MailVerificationThread implements Runnable{
                     System.out.println("✓ Reporte de licencias generado");
 
                 } else if (event.getAction() == Token.REPORTE_PAGOS) {
-                    // Reporte de Pagos por Mes
+                    // 💵 Reporte de Pagos por Mes - GRÁFICO DE BARRAS
                     Map<String, Double> datos = breporte.obtenerPagosPorMes();
-                    htmlChart = ChartGenerator.generatePieChart(
+                    htmlChart = ChartGenerator.generateBarChart(
                         datos,
                         "💵 Pagos Totales por Mes (Últimos 12 meses)",
                         "chartPagos"
@@ -1188,17 +1190,22 @@ public class MailVerificationThread implements Runnable{
                     SendEmailThread.sendEmail(
                         event.getSender(),
                         "Error en Comando de Reporte",
-                        "<html><body><h2>✗ Error</h2>" +
+                        "<html><body>" +
+                        "<h2 style='color: #F44336;'>✗ Error</h2>" +
                         "<p>Acción no válida para reporte</p>" +
-                        "<p>Reportes disponibles:</p>" +
-                        "<ul>" +
-                        "<li>reporte asistencias</li>" +
-                        "<li>reporte inscripciones</li>" +
-                        "<li>reporte servicios</li>" +
-                        "<li>reporte ventas</li>" +
-                        "<li>reporte licencias</li>" +
-                        "<li>reporte pagospormes</li>" +
+                        "<p><strong>Reportes disponibles:</strong></p>" +
+                        "<ul style='line-height: 1.8;'>" +
+                        "<li>📊 <code>reporte asistencias</code> - Estadísticas de asistencia (Gráfico de Dona)</li>" +
+                        "<li>📅 <code>reporte inscripciones</code> - Inscripciones por mes (Gráfico de Barras)</li>" +
+                        "<li>👥 <code>reporte servicios</code> - Alumnos por servicio (Gráfico de Pastel)</li>" +
+                        "<li>💰 <code>reporte ventas</code> - Ventas por estado (Gráfico de Dona)</li>" +
+                        "<li>📋 <code>reporte licencias</code> - Licencias por estado (Gráfico de Pastel)</li>" +
+                        "<li>💵 <code>reporte pagos</code> - Pagos por mes (Gráfico de Barras)</li>" +
                         "</ul>" +
+                        "<p style='margin-top: 20px; padding: 10px; background: #e3f2fd; border-radius: 5px;'>" +
+                        "<strong>💡 Tip:</strong> Los gráficos de barras son mejores para datos temporales, " +
+                        "mientras que los gráficos circulares muestran proporciones." +
+                        "</p>" +
                         "</body></html>"
                     );
                     return;
@@ -1211,6 +1218,8 @@ public class MailVerificationThread implements Runnable{
                     htmlChart
                 );
 
+                System.out.println("✓ Reporte enviado exitosamente a: " + event.getSender());
+
             } catch (SQLException e) {
                 System.err.println("✗ Error al generar reporte: " + e.getMessage());
                 e.printStackTrace();
@@ -1218,20 +1227,54 @@ public class MailVerificationThread implements Runnable{
                 SendEmailThread.sendEmail(
                     event.getSender(),
                     "Error al Generar Reporte",
-                    "<html><body><h2>✗ Error en Base de Datos</h2>" +
-                    "<p>" + e.getMessage() + "</p></body></html>"
+                    "<html><body>" +
+                    "<h2 style='color: #F44336;'>✗ Error en Base de Datos</h2>" +
+                    "<p><strong>Mensaje de error:</strong></p>" +
+                    "<pre style='background: #ffebee; padding: 15px; border-radius: 5px; color: #c62828;'>" +
+                    e.getMessage() +
+                    "</pre>" +
+                    "<p style='margin-top: 20px;'>Posibles causas:</p>" +
+                    "<ul>" +
+                    "<li>No hay datos disponibles para generar el reporte</li>" +
+                    "<li>Error de conexión con la base de datos</li>" +
+                    "<li>Problema con la consulta SQL</li>" +
+                    "</ul>" +
+                    "<p>Por favor, contacte al administrador si el problema persiste.</p>" +
+                    "</body></html>"
                 );
+
             } catch (Exception e) {
-                System.err.println("✗ Error inesperado: " + e.getMessage());
+                System.err.println("✗ Error inesperado al generar reporte: " + e.getMessage());
                 e.printStackTrace();
 
                 SendEmailThread.sendEmail(
                     event.getSender(),
                     "Error al Generar Reporte",
-                    "<html><body><h2>✗ Error</h2>" +
-                    "<p>" + e.getMessage() + "</p></body></html>"
+                    "<html><body>" +
+                    "<h2 style='color: #F44336;'>✗ Error Inesperado</h2>" +
+                    "<p>" + e.getMessage() + "</p>" +
+                    "<p>Por favor, intente nuevamente o contacte al administrador.</p>" +
+                    "</body></html>"
                 );
             }
+        }
+        
+        @Override
+        public void help(TokenEvent event) {
+            System.out.println("=== COMANDO HELP ===");
+            System.out.println("Enviando lista de comandos disponibles...");
+
+            // Generar el HTML con todos los comandos
+            String htmlHelp = HelpGenerator.generateHelpHTML();
+
+            // Enviar por correo
+            SendEmailThread.sendEmail(
+                event.getSender(),
+                "📚 Lista de Comandos Disponibles - Sistema de Gestión Educativa",
+                htmlHelp
+            );
+
+            System.out.println("✓ Lista de comandos enviada por correo a: " + event.getSender());
         }
 
 

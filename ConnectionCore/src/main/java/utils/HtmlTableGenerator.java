@@ -37,6 +37,7 @@ public class HtmlTableGenerator {
             html.append("<th>Teléfono</th>");
             html.append("<th>Fecha Nacimiento</th>");
             html.append("<th>Dirección</th>");
+            html.append("<th>Código</th>");
             html.append("<th>Estado</th>");
             html.append("<th>Grado</th>");
             html.append("<th>Fecha Ingreso</th>");
@@ -45,13 +46,14 @@ public class HtmlTableGenerator {
             for (String[] alumno : alumnos) {
                 html.append("<tr>");
                 for (String campo : alumno) {
-                    html.append("<td>").append(campo != null ? campo : "").append("</td>");
+                    html.append("<td><strong>").append(alumno[8]).append("</strong></td>");
                 }
                 html.append("</tr>");
             }
             
             html.append("</table>");
             html.append("<p class='total'>Total de alumnos: ").append(alumnos.size()).append("</p>");
+            
         }
         
         html.append("</body>");
@@ -250,6 +252,7 @@ public class HtmlTableGenerator {
             html.append("<th>ID</th>");
             html.append("<th>Tutor</th>");
             html.append("<th>Día</th>");
+            
             html.append("<th>Hora Inicio</th>");
             html.append("<th>Hora Fin</th>");
             html.append("<th>Fecha Asignación</th>");
@@ -309,8 +312,7 @@ public class HtmlTableGenerator {
                html.append("<th>Alumno</th>");
                html.append("<th>Tutor</th>");
                html.append("<th>Fecha</th>");
-               html.append("<th>Dirección</th>");
-               html.append("<th>Foto</th>");
+               html.append("<th>Horarios</th>");
                html.append("<th>Estado</th>");
                html.append("<th>Observaciones</th>");
                html.append("</tr>");
@@ -336,13 +338,13 @@ public class HtmlTableGenerator {
                    html.append("<td>").append(inscripcion[6]).append("</td>");
                    html.append("<td>").append(inscripcion[7]).append("</td>");
 
-                   // Dirección
-                   String direccion = inscripcion[8] != null ? inscripcion[8] : "N/A";
-                   html.append("<td class='truncate' title='").append(direccion).append("'>").append(direccion).append("</td>");
-
-                   // Foto
-                   String foto = inscripcion[9] != null && !inscripcion[9].isEmpty() ? "✓ Sí" : "✗ No";
-                   html.append("<td>").append(foto).append("</td>");
+                    String horariosJson = inscripcion[8] != null ? inscripcion[8] : "N/A";
+                    String horariosDisplay = horariosJson.replace("[", "").replace("]", "")
+                                             .replace("{", "").replace("}", "")
+                                             .replace("\"dia\":", "").replace("\"hora_inicio\":", "")
+                                             .replace("\"hora_fin\":", "").replace("\"", "")
+                                             .replace(",", " - ");
+                    html.append("<td>").append(horariosDisplay).append("</td>");
 
                    // Estado
                    String estado = inscripcion[10];
@@ -479,6 +481,7 @@ public class HtmlTableGenerator {
                 html.append("<tr>");
                 html.append("<th>ID</th>");
                 html.append("<th>Alumno</th>");
+                html.append("<th>Código</th>");
                 html.append("<th>Grado</th>");
                 html.append("<th>Modalidad</th>");
                 html.append("<th>Fecha Inscripción</th>");
@@ -693,6 +696,7 @@ public class HtmlTableGenerator {
                 html.append("<table>");
                 html.append("<tr>");
                 html.append("<th>ID</th>");
+                html.append("<th>Asistencia ID</th>");
                 html.append("<th>Alumno</th>");
                 html.append("<th>Tutor</th>");
                 html.append("<th>Servicio</th>");
@@ -707,6 +711,7 @@ public class HtmlTableGenerator {
                 for (String[] informe : informes) {
                     html.append("<tr>");
                     html.append("<td>").append(informe[0]).append("</td>"); // ID
+                    html.append("<td>").append(informe[1]).append("</td>");
                     html.append("<td>").append(informe[2]).append("</td>"); // Alumno
                     html.append("<td>").append(informe[3]).append("</td>"); // Tutor
                     html.append("<td>").append(informe[4]).append("</td>"); // Servicio
@@ -871,9 +876,9 @@ public class HtmlTableGenerator {
                 html.append("<table>");
                 html.append("<tr>");
                 html.append("<th>ID</th>");
-                html.append("<th>Tutor ID</th>");
+                html.append("<th>Asistencia ID</th>");
                 html.append("<th>Tutor</th>");
-                html.append("<th>Fecha Licencia</th>");
+                html.append("<th>Fecha Clase</th>");
                 html.append("<th>Motivo</th>");
                 html.append("<th>Estado</th>");
                 html.append("<th>Fecha Solicitud</th>");
@@ -1027,9 +1032,10 @@ public class HtmlTableGenerator {
                 html.append("<table>");
                 html.append("<tr>");
                 html.append("<th>ID</th>");
-                html.append("<th>Alumno</th>");
+                html.append("<th>Inscripción ID</th>");
                 html.append("<th>Propietario</th>");
                 html.append("<th>Tipo</th>");
+                html.append("<th>Cuotas</th>");
                 html.append("<th>Monto Total</th>");
                 html.append("<th>Pagado</th>");
                 html.append("<th>Pendiente</th>");
